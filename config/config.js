@@ -10,8 +10,7 @@ const getConfigs = () => {
       origin: [
         "http://localhost:3001",
         "http://localhost:3000",
-        "https://inbount-backend.vercel.app",
-        "https://inbound-frontend-76vwhtxqu-mishabs-projects-9264965a.vercel.app/",
+        "https://iwms-vensha-frontend.vercel.app",
       ],
       credentials: true,
     },
