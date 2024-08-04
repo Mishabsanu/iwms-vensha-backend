@@ -11,7 +11,7 @@ import {
 import CheckRoleAndTokenAccess from "../middlewares/permission.js";
 
 const router = express.Router();
-router.post("/add-user",CheckRoleAndTokenAccess, AddUser);
+router.post("/add-user", CheckRoleAndTokenAccess, AddUser);
 router.post("/update-user", CheckRoleAndTokenAccess, UpdateUser);
 router.post("/list-user", CheckRoleAndTokenAccess, ListUser);
 router.delete("/delete-user", CheckRoleAndTokenAccess, DeleteUser);
