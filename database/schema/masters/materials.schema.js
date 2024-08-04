@@ -22,7 +22,7 @@ const MaterialSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  vendor_no: {
+  vendor_code: {
     type: String,
     required: true,
     trim: true,

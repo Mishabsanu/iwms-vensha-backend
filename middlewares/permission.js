@@ -40,7 +40,7 @@ const CheckRoleAndTokenAccess = async (req, res, next) => {
         console.error("Error writing to log file:", err);
       }
     });
-    console.log(req.route.path);
+    // console.log(req.route.path);
     if (req.originalUrl != "/api/V1/profile/list-user-profile") {
       const requiredPermission = ExtractRequiredPermission(req.route.path);
 

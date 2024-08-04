@@ -54,20 +54,82 @@ const ExtractRequiredPermission = (routeName) => {
     // Production Line modules
 
     case "/add-produntion-line-master":
-      return "produntion_line_master_create";
+      return "production_line_master_create";
     case "/bulk-upload-produntion-line-master":
-      return "produntion_line_master_create";
+      return "production_line_master_create";
     case "/update-produntion-line-master":
-      return "produntion_line_master_edit";
+      return "production_line_master_edit";
     case "/list-produntion-line-master":
       return "production_line_master_view";
 
     case "/add-inbound":
       return "material_master_create";
+    case "/list-vendor":
+      return "vendor_master_view";
     case "/update-inbound":
       return "material_master_edit";
     case "/list-inbound":
       return "role_view";
+
+    case "/add-storage-type":
+      return "storage_type_master_create";
+    case "/list-vendor":
+      return "storage_type_master_view";
+    case "/update-storage-type":
+      return "storage_type_master_edit";
+    case "/list-storage-type":
+      return "storage_type_master_view";
+
+    case "/add-storage-search":
+      return "storage_search_master_create";
+    case "/list-vendor":
+      return "storage_search_master_view";
+    case "/update-storage-search":
+      return "storage_search_master_edit";
+    case "/list-storage-search":
+      return "storage_search_master_view";
+
+    case "/add-vendor":
+      return "vendor_master_create";
+    case "/list-vendor":
+      return "vendor_master_view";
+    case "/update-vendor":
+      return "vendor_master_edit";
+
+    case "/add-bin":
+      return "bin_master_create";
+    case "/list-bin":
+      return "bin_master_view";
+    case "/update-bin":
+      return "bin_master_edit";
+
+    case "/add-customer":
+      return "customer_master_create";
+    case "/list-customer":
+      return "customer_master_view";
+    case "/update-customer":
+      return "customer_master_edit";
+
+    case "/add-vehicle":
+      return "vehicle_master_create";
+    case "/list-vehicle":
+      return "vehicle_master_view";
+    case "/update-vehicle":
+      return "vehicle_master_edit";
+
+    case "/add-loading":
+      return "loading_master_create";
+    case "/list-loading":
+      return "loading_master_view";
+    case "/update-loading":
+      return "loading_master_edit";
+
+    case "/add-unloading":
+      return "unloading_master_create";
+    case "/list-unloading":
+      return "unloading_master_view";
+    case "/update-unloading":
+      return "unloading_master_edit";
 
     default:
       return null;

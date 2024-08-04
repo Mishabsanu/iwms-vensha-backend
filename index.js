@@ -8,12 +8,19 @@ import getConfigs from "./config/config.js";
 import mongo_service from "./database/mongo.service.js";
 import authRouter from "./routes/auth.routes.js";
 import ProductionLineMasterRouter from "./routes/masters/produntionLine.routes.js";
-import ProductionMasterRouter from "./routes/production.routes.js";
 import MaterialMasterRouter from "./routes/masters/material.routes.js";
+import BinRouter from "./routes/masters/bin.routes.js";
+import StorageTypeRouter from "./routes/masters/storageType.routes.js";
+import StorageSearchRouter from "./routes/masters/storageSearch.routes.js";
 import InboundRouter from "./routes/masters/inbound.routes.js";
+import CustomerRouter from "./routes/masters/customer.routes.js";
+import VehicleRouter from "./routes/masters/vehicle.routes.js";
+import VendorRouter from "./routes/masters/vendor.routes.js";
 import profileRouter from "./routes/profile.routes.js";
 import rolesRouter from "./routes/roles.routes.js";
 import usersRouter from "./routes/users.routes.js";
+import LoadingRouter from "./routes/masters/loading.routes.js";
+import UnLoadingRouter from "./routes/masters/unloading.routes.js";
 
 import { globalErrorHandler } from "./utils/errors/globalErrorHandler.js";
 const Configs = getConfigs();
@@ -51,9 +58,16 @@ app.use(
   `/api/${Configs.server.version}/production-line`,
   ProductionLineMasterRouter
 );
-app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
+// app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
 app.use(`/api/${Configs.server.version}/inbound`, InboundRouter);
-
+app.use(`/api/${Configs.server.version}/vendor`, VendorRouter);
+app.use(`/api/${Configs.server.version}/customer`, CustomerRouter);
+app.use(`/api/${Configs.server.version}/vehicle`, VehicleRouter);
+app.use(`/api/${Configs.server.version}/storage-type`, StorageTypeRouter);
+app.use(`/api/${Configs.server.version}/bin`, BinRouter);
+app.use(`/api/${Configs.server.version}/storage-search`, StorageSearchRouter);
+app.use(`/api/${Configs.server.version}/loading`, LoadingRouter);
+app.use(`/api/${Configs.server.version}/unloading`, UnLoadingRouter);
 app.use(globalErrorHandler);
 // Error handling for the server
 server.on("error", (error) => {

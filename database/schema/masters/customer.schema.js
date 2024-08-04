@@ -1,14 +1,14 @@
 import mongoose from "mongoose";
 
-const VendorSchema = new mongoose.Schema({
-  vendor_code: {
+const CustomerSchema = new mongoose.Schema({
+  customer_code: {
     type: String,
-    required: [true, "Vendor Code is required."],
+    required: [true, "Customer Code is required."],
     trim: true,
   },
-  vendor_name: {
+  customer_name: {
     type: String,
-    required: [true, "Vendor Name is required."],
+    required: [true, "Customer Name is required."],
     trim: true,
   },
   address: {
@@ -47,6 +47,7 @@ const VendorSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
   },
+
   vendor_type: {
     type: String,
 
@@ -62,9 +63,10 @@ const VendorSchema = new mongoose.Schema({
 
     trim: true,
   },
-  bank_details: {
-    type: String,
-    trim: true,
+  credit_limit: {
+    type: Number,
+
+    default: 0,
   },
   created_at: {
     type: Date,
@@ -80,6 +82,6 @@ const VendorSchema = new mongoose.Schema({
   },
 });
 
-const VendorModel = mongoose.model("vendor", VendorSchema);
+const CustomerModel = mongoose.model("Customer", CustomerSchema);
 
-export default VendorModel;
+export default CustomerModel;
