@@ -58,6 +58,9 @@ const RoleSchema = new mongoose.Schema({
     unloading_master_create: { type: Boolean, default: false },
     unloading_master_edit: { type: Boolean, default: false },
     unloading_master_view: { type: Boolean, default: false },
+    production_master_create: { type: Boolean, default: false },
+    production_master_edit: { type: Boolean, default: false },
+    production_master_view: { type: Boolean, default: false },
   },
   status: { type: Boolean, default: true },
   created_employee_id: {
