@@ -68,7 +68,7 @@ export const UpdateUser = catchAsync(async (req, res) => {
       });
     }
   }
-  const updateData = { ...req.body};
+  const updateData = { ...req.body };
   const user = await UserModel.findByIdAndUpdate(
     userId,
     { $set: updateData },
@@ -89,8 +89,13 @@ export const UpdateUser = catchAsync(async (req, res) => {
 });
 
 export const ListUser = catchAsync(async (req, res) => {
-  const { string, boolean, numbers ,arrayField=[]} = req?.body?.searchFields || {};
- const {
+  const {
+    string,
+    boolean,
+    numbers,
+    arrayField = [],
+  } = req?.body?.searchFields || {};
+  const {
     page = 1,
     limit = 10,
     sortBy = "updated_at",
@@ -99,8 +104,14 @@ export const ListUser = catchAsync(async (req, res) => {
   const search = req.query.search || "";
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
-    const searchdata = DynamicSearch(search, boolean, numbers, string,arrayField);
-   if (searchdata?.length == 0) {
+    const searchdata = DynamicSearch(
+      search,
+      boolean,
+      numbers,
+      string,
+      arrayField
+    );
+    if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
         status: false,

@@ -71,7 +71,9 @@ export const SignIn = catchAsync(async (req, res, next) => {
       Date.now() + Configs.cookie.cookie_expire * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    sameSite: "Lax",
+    secured:true,
+    sameSite: "None",
+  
   };
 
   res.header("Access-Control-Allow-Origin", origin);
