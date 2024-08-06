@@ -21,7 +21,7 @@ import rolesRouter from "./routes/roles.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import LoadingRouter from "./routes/masters/loading.routes.js";
 import UnLoadingRouter from "./routes/masters/unloading.routes.js";
-
+import ProductionMasterRouter from "./routes/warehouseExecutive/production.routes.js"
 import { globalErrorHandler } from "./utils/errors/globalErrorHandler.js";
 const Configs = getConfigs();
 mongo_service();
@@ -58,7 +58,7 @@ app.use(
   `/api/${Configs.server.version}/production-line`,
   ProductionLineMasterRouter
 );
-// app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
+app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
 app.use(`/api/${Configs.server.version}/inbound`, InboundRouter);
 app.use(`/api/${Configs.server.version}/vendor`, VendorRouter);
 app.use(`/api/${Configs.server.version}/customer`, CustomerRouter);

@@ -1,60 +1,61 @@
+import mongoose from "mongoose";
+import XLSX from "xlsx";
 // import BinModel from "../database/schema/bin.js";
-// import TransferOrder from "../database/schema/production.js";
-// import catchAsync from "../utils/errors/catchAsync.js";
-// import XLSX from "xlsx";
-// import mongoose from "mongoose";
-// import { DynamicSearch } from "../utils/dynamicSearch/dynamic.js";
 
-// export const BulkUploadProduction = catchAsync(async (req, res, next) => {
-//   const file = req.file;
-//   if (!file || !file.path) {
-//     return res.status(400).json({
-//       result: [],
-//       status: false,
-//       message: "No file uploaded or file path not found.",
-//     });
-//   }
+import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
+import catchAsync from "../../utils/errors/catchAsync.js";
+import MaterialModel from "../../database/schema/masters/materials.schema.js";
 
-//   const session = await TransferOrder.startSession();
-//   session.startTransaction();
+export const BulkUploadProduction = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  if (!file || !file.path) {
+    return res.status(400).json({
+      result: [],
+      status: false,
+      message: "No file uploaded or file path not found.",
+    });
+  }
 
-//   try {
-//     const workbook = XLSX.readFile(file.path);
-//     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-//     const data = XLSX.utils.sheet_to_json(worksheet, {
-//       dateNF: "dd-mm-yyyy",
-//       raw: false,
-//     });
-//     console.log(data, "data");
+  const session = await ProductionModel.startSession();
+  session.startTransaction();
 
-//     if (data.length === 0) {
-//       return res.status(400).json({
-//         result: [],
-//         status: false,
-//         message: "No items found in the uploaded file.",
-//       });
-//     }
-//     await TransferOrder.insertMany(data, {
-//       session,
-//     });
+  try {
+    const workbook = XLSX.readFile(file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet, {
+      dateNF: "dd-mm-yyyy",
+      raw: false,
+    });
+    console.log(data, "data");
 
-//     await session.commitTransaction();
-//     session.endSession();
+    if (data.length === 0) {
+      return res.status(400).json({
+        result: [],
+        status: false,
+        message: "No items found in the uploaded file.",
+      });
+    }
+    await ProductionModel.insertMany(data, {
+      session,
+    });
 
-//     return res.status(201).json({
-//       result: [],
-//       status: true,
-//       message: "Pallet Bulk uploaded successfully.",
-//     });
-//   } catch (error) {
-//     await session.abortTransaction();
-//     session.endSession();
-//     return res.status(500).json({
-//       status: false,
-//       message: error.message,
-//     });
-//   }
-// });
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({
+      result: [],
+      status: true,
+      message: "Pallet Bulk uploaded successfully.",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+});
 
 // export const BulkUploadBin = catchAsync(async (req, res, next) => {
 //   const file = req.file;
@@ -107,67 +108,129 @@
 //   }
 // });
 
-// export const ListProduntion = catchAsync(async (req, res) => {
+export const ListProduntion = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "updated_at",
+    sort = "desc",
+    search,
+  } = req.query;
+  console.log(search);
 
-//   const {
-//     page = 1,
-//     limit = 10,
-//     sortBy = "updated_at",
-//     sort = "desc",
-//     search,
-//   } = req.query;
-//   console.log(search);
+  var searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        { Production_Line: searchRegex },
+        { SKU_Code: searchRegex },
+        { SUT: searchRegex },
+        { status: searchRegex },
+        { Assigned_To: searchRegex },
+        { Batch: searchRegex },
+        { Bin: searchRegex },
+      ],
+    };
+  }
 
-//   var searchQuery = { deleted_at: null };
-//   if (search) {
-//     const searchRegex = new RegExp(".*" + search + ".*", "i");
-//     searchQuery = {
-//       ...searchQuery,
-//       $or: [
-//         { Production_Line: searchRegex },
-//         { SKU_Code: searchRegex },
-//         { SUT: searchRegex },
-//         { status: searchRegex },
-//         { Assigned_To: searchRegex },
-//         { Batch: searchRegex },
-//         { Bin: searchRegex },
-//       ],
-//     };
-//   }
+  const totalDocument = await ProductionModel.countDocuments({
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocument / limit);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = Math.max((validPage - 1) * limit, 0);
 
-//   const totalDocument = await TransferOrder.countDocuments({
-//     ...searchQuery,
-//   });
-//   const totalPages = Math.ceil(totalDocument / limit);
-//   const validPage = Math.min(Math.max(page, 1), totalPages);
-//   const skip = Math.max((validPage - 1) * limit, 0);
+  const produntionLineList = await ProductionModel.aggregate([
+    {
+      $match: { ...searchQuery },
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
 
-//   const produntionLineList = await TransferOrder.aggregate([
-//     {
-//       $match: { ...searchQuery },
-//     },
-//     {
-//       $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
-//     },
-//     {
-//       $skip: skip,
-//     },
-//     {
-//       $limit: limit,
-//     },
-//   ]);
+  if (produntionLineList) {
+    return res.status(200).json({
+      result: produntionLineList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All ProduntionLine List",
+    });
+  }
+});
 
-//   if (produntionLineList) {
-//     return res.status(200).json({
-//       result: produntionLineList,
-//       status: true,
-//       totalPages: totalPages,
-//       currentPage: validPage,
-//       message: "All ProduntionLine List",
-//     });
-//   }
-// });
+export const FetchSkuDetails = catchAsync(async (req, res) => {
+  const { q } = req.query;
 
+  if (!q) {
+    return res.status(400).json({
+      status: "fail",
+      message: 'Query parameter "q" is required',
+    });
+  }
+  try {
+    const skus = await MaterialModel.find({
+      sku_code: new RegExp(q, "i"), // Case-insensitive search
+    }).limit(10); // Limit results for performance
+
+    // Map SKUs to include multiple SUT values if applicable
+    const skuData = skus.map((sku) => ({
+      id: sku._id,
+      label: sku.sku_code,
+      value: sku.sku_code,
+      sku_description: sku.sku_description,
+      // Include SUT values specific to the SKU
+    }));
+
+    // Create a mapping of SKU to its SUT values
+    const skuSutMap = {};
+    skus.forEach((sku) => {
+      if (!skuSutMap[sku.sku_code]) {
+        skuSutMap[sku.sku_code] = [];
+      }
+      if (sku.sut && !skuSutMap[sku.sku_code].includes(sku.sut)) {
+        skuSutMap[sku.sku_code].push(sku.sut);
+      }
+    });
+    console.log(skuData, "skuData");
+    console.log(skuSutMap, "skuSutMap");
+
+    return res.status(200).json({
+      status: "fail",
+      skus: skuData,
+      skuSutMap,
+      message: "List",
+    });
+  } catch (error) {
+    console.error("Error fetching SKUs:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while fetching SKUs",
+    });
+  }
+});
+
+export const AddProduction = catchAsync(async (req, res) => {
+  const productionData = {
+    ...req.body,
+  };
+  const newProductionList = new ProductionModel(productionData);
+  const savedProduction = await newProductionList.save();
+  return res.status(201).json({
+    result: savedProduction,
+    status: true,
+    message: "Production created successfully",
+  });
+});
 // export const ListBin = catchAsync(async (req, res) => {
 //   const {
 //     page = 1,
@@ -231,7 +294,7 @@
 
 //   try {
 //     const transferOrderIds = req.body.item_details.map((item) => item._id);
-//     const transferOrders = await TransferOrder.find({
+//     const transferOrders = await ProductionModel.find({
 //       _id: { $in: transferOrderIds },
 //     }).session(session);
 //     let bins = await BinModel.find({ Status: { $ne: "No Available" } }).session(
@@ -345,7 +408,7 @@
 //           { session }
 //         );
 
-//         await TransferOrder.updateMany(
+//         await ProductionModel.updateMany(
 //           { _id: { $in: transferOrderIds } },
 //           {
 //             Bin: allocation.BinNumber,

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import catchAsync from "../../utils/errors/catchAsync.js";
 import { DynamicSearch } from "../../utils/dynamicSearch/dynamic.js";
 import MaterialModel from "../../database/schema/masters/materials.schema.js";
+
 export const AddMaterialMaster = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
   const materialData = {

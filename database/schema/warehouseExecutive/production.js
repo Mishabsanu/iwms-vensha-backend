@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const transferOrderSchema = new mongoose.Schema({
+const productionSchema = new mongoose.Schema({
   Production_Line: {
     type: String,
     required: true,
@@ -73,6 +73,6 @@ const transferOrderSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const TransferOrder = mongoose.model("TransferOrder", transferOrderSchema);
+const ProductionModel = mongoose.model("Production", productionSchema);
 
-export default TransferOrder;
+export default ProductionModel;
