@@ -131,6 +131,13 @@ const ExtractRequiredPermission = (routeName) => {
     case "/update-unloading":
       return "unloading_master_edit";
 
+    case "/add-forklift-operator":
+      return "forklift_operator_master_create";
+    case "/list-forklift-operator":
+      return "forklift_operator_master_view";
+    case "/update-forklift-operator":
+      return "forklift_operator_master_edit";
+
     default:
       return null;
   }

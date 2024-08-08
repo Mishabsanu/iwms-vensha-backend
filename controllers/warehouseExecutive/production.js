@@ -1,10 +1,9 @@
-import mongoose from "mongoose";
 import XLSX from "xlsx";
-// import BinModel from "../database/schema/bin.js";
-
+import MaterialModel from "../../database/schema/masters/materials.schema.js";
 import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
-import MaterialModel from "../../database/schema/masters/materials.schema.js";
+import BinModel from "../../database/schema/bin.js";
+import mongoose from "mongoose";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -57,56 +56,56 @@ export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   }
 });
 
-// export const BulkUploadBin = catchAsync(async (req, res, next) => {
-//   const file = req.file;
-//   if (!file || !file.path) {
-//     return res.status(400).json({
-//       result: [],
-//       status: false,
-//       message: "No file uploaded or file path not found.",
-//     });
-//   }
+export const BulkUploadBin = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  if (!file || !file.path) {
+    return res.status(400).json({
+      result: [],
+      status: false,
+      message: "No file uploaded or file path not found.",
+    });
+  }
 
-//   const session = await BinModel.startSession();
-//   session.startTransaction();
+  const session = await BinModel.startSession();
+  session.startTransaction();
 
-//   try {
-//     const workbook = XLSX.readFile(file.path);
-//     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-//     const data = XLSX.utils.sheet_to_json(worksheet, {
-//       dateNF: "dd-mm-yyyy",
-//       raw: false,
-//     });
-//     console.log(data, "data");
+  try {
+    const workbook = XLSX.readFile(file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet, {
+      dateNF: "dd-mm-yyyy",
+      raw: false,
+    });
+    console.log(data, "data");
 
-//     if (data.length === 0) {
-//       return res.status(400).json({
-//         result: [],
-//         status: false,
-//         message: "No items found in the uploaded file.",
-//       });
-//     }
-//     await BinModel.insertMany(data, {
-//       session,
-//     });
+    if (data.length === 0) {
+      return res.status(400).json({
+        result: [],
+        status: false,
+        message: "No items found in the uploaded file.",
+      });
+    }
+    await BinModel.insertMany(data, {
+      session,
+    });
 
-//     await session.commitTransaction();
-//     session.endSession();
+    await session.commitTransaction();
+    session.endSession();
 
-//     return res.status(201).json({
-//       result: [],
-//       status: true,
-//       message: "Bin Bulk uploaded successfully.",
-//     });
-//   } catch (error) {
-//     await session.abortTransaction();
-//     session.endSession();
-//     return res.status(500).json({
-//       status: false,
-//       message: error.message,
-//     });
-//   }
-// });
+    return res.status(201).json({
+      result: [],
+      status: true,
+      message: "Bin Bulk uploaded successfully.",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+});
 
 export const ListProduntion = catchAsync(async (req, res) => {
   const {
@@ -155,6 +154,34 @@ export const ListProduntion = catchAsync(async (req, res) => {
     {
       $limit: limit,
     },
+    {
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
   ]);
 
   if (produntionLineList) {
@@ -177,37 +204,79 @@ export const FetchSkuDetails = catchAsync(async (req, res) => {
       message: 'Query parameter "q" is required',
     });
   }
+
   try {
+    // Find SKUs matching the query
     const skus = await MaterialModel.find({
       sku_code: new RegExp(q, "i"), // Case-insensitive search
     }).limit(10); // Limit results for performance
 
-    // Map SKUs to include multiple SUT values if applicable
-    const skuData = skus.map((sku) => ({
-      id: sku._id,
-      label: sku.sku_code,
-      value: sku.sku_code,
-      sku_description: sku.sku_description,
-      // Include SUT values specific to the SKU
-    }));
+    // Extract unique SKU codes
+    // const matchedSkuCodes = [...new Set(skus.map((sku) => sku.sku_code))];
 
-    // Create a mapping of SKU to its SUT values
-    const skuSutMap = {};
-    skus.forEach((sku) => {
-      if (!skuSutMap[sku.sku_code]) {
-        skuSutMap[sku.sku_code] = [];
-      }
-      if (sku.sut && !skuSutMap[sku.sku_code].includes(sku.sut)) {
-        skuSutMap[sku.sku_code].push(sku.sut);
-      }
-    });
-    console.log(skuData, "skuData");
-    console.log(skuSutMap, "skuSutMap");
+    console.log(skus, "matchedSkuCodes");
 
     return res.status(200).json({
-      status: "fail",
-      skus: skuData,
-      skuSutMap,
+      status: "success",
+      data: skus, // Return only the array of matched SKU codes
+      message: "List",
+    });
+  } catch (error) {
+    console.error("Error fetching SKUs:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while fetching SKUs",
+    });
+  }
+});
+
+export const FetchAllSkuDetails = catchAsync(async (req, res) => {
+  const { sku_code } = req.query;
+
+  try {
+    if (!sku_code) {
+      return res.status(400).json({
+        status: false,
+        message: "sku_code query parameter is required",
+      });
+    }
+
+    // Use aggregation to get unique sku_code, sku_decr, and sut
+    const result = await MaterialModel.aggregate([
+      { $match: { sku_code: sku_code } },
+      {
+        $group: {
+          _id: "$sku_code",
+          uniqueSkuDecrs: { $addToSet: "$sku_description" },
+          uniqueSuts: { $addToSet: "$sut" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          uniqueSkuCodes: "$_id",
+          uniqueSkuDecrs: 1,
+          uniqueSuts: 1,
+        },
+      },
+    ]);
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        status: false,
+        message: "No records found",
+      });
+    }
+
+    const { uniqueSkuCodes, uniqueSkuDecrs, uniqueSuts } = result[0];
+
+    return res.status(200).json({
+      status: true,
+      data: {
+        uniqueSkuCodes: [uniqueSkuCodes],
+        uniqueSkuDecrs: uniqueSkuDecrs,
+        uniqueSuts: uniqueSuts,
+      },
       message: "List",
     });
   } catch (error) {
@@ -220,230 +289,245 @@ export const FetchSkuDetails = catchAsync(async (req, res) => {
 });
 
 export const AddProduction = catchAsync(async (req, res) => {
-  const productionData = {
-    ...req.body,
-  };
-  const newProductionList = new ProductionModel(productionData);
-  const savedProduction = await newProductionList.save();
+  const { process_order_qty, pallet_qty } = req.body;
+
+  // Calculate the number of full pallets and the remaining quantity
+  const fullPalletsCount = Math.floor(process_order_qty / pallet_qty);
+  const remainingQty = process_order_qty % pallet_qty;
+
+  // Get the latest transfer order number from the database
+  const latestProduction = await ProductionModel.findOne().sort({
+    transfer_order: -1,
+  });
+  const startingTransferOrderNo = latestProduction
+    ? latestProduction.transfer_order + 1
+    : 1;
+
+  // Create production entries for the full pallets
+  const productionEntries = [];
+
+  for (let i = 0; i < fullPalletsCount; i++) {
+    productionEntries.push({
+      ...req.body,
+      pallet_qty: pallet_qty,
+      transfer_order: startingTransferOrderNo + i,
+    });
+  }
+
+  // Add the remaining quantity as the last production entry if there's any
+  if (remainingQty > 0) {
+    productionEntries.push({
+      ...req.body,
+      pallet_qty: remainingQty,
+      transfer_order: startingTransferOrderNo + fullPalletsCount,
+    });
+  }
+
+  // Save all production entries to the database
+  const savedProductions = await ProductionModel.insertMany(productionEntries);
+
   return res.status(201).json({
-    result: savedProduction,
+    result: savedProductions,
     status: true,
-    message: "Production created successfully",
+    message: "Production entries created successfully",
   });
 });
-// export const ListBin = catchAsync(async (req, res) => {
-//   const {
-//     page = 1,
-//     limit = 10,
-//     sortBy = "updated_at",
-//     sort = "desc",
-//     search,
-//   } = req.query;
+export const ListBin = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "updated_at",
+    sort = "desc",
+    search,
+  } = req.query;
 
-//   var searchQuery = { deleted_at: null };
-//   if (search) {
-//     const searchRegex = new RegExp(".*" + search + ".*", "i");
-//     searchQuery = {
-//       ...searchQuery,
-//       $or: [
-//         { StorageType: searchRegex },
-//         { BinNumber: searchRegex },
-//         { Code3Digit: searchRegex },
-//         { Status: searchRegex },
+  var searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        { StorageType: searchRegex },
+        { BinNumber: searchRegex },
+        { Code3Digit: searchRegex },
+        { Status: searchRegex },
 
-//         { Batch: searchRegex },
-//         { SkuCode: searchRegex },
-//       ],
-//     };
-//   }
-//   const totalDocument = await BinModel.countDocuments({
-//     ...searchQuery,
-//   });
-//   const totalPages = Math.ceil(totalDocument / limit);
-//   const validPage = Math.min(Math.max(page, 1), totalPages);
-//   const skip = Math.max((validPage - 1) * limit, 0);
+        { Batch: searchRegex },
+        { SkuCode: searchRegex },
+      ],
+    };
+  }
+  const totalDocument = await BinModel.countDocuments({
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocument / limit);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = Math.max((validPage - 1) * limit, 0);
 
-//   const BinList = await BinModel.aggregate([
-//     {
-//       $match: { ...searchQuery },
-//     },
-//     {
-//       $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
-//     },
-//     {
-//       $skip: skip,
-//     },
-//     {
-//       $limit: limit,
-//     },
-//   ]);
-//   if (BinList) {
-//     return res.status(200).json({
-//       result: BinList,
-//       status: true,
-//       totalPages: totalPages,
-//       currentPage: validPage,
-//       message: "All Bin List",
-//     });
-//   }
-// });
+  const BinList = await BinModel.aggregate([
+    {
+      $match: { ...searchQuery },
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
+  if (BinList) {
+    return res.status(200).json({
+      result: BinList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All Bin List",
+    });
+  }
+});
 
-// export const AllocateBin = catchAsync(async (req, res) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
+export const AllocateBin = catchAsync(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const transferOrderIds = req.body.item_details.map((item) => item._id);
+    const transferOrders = await ProductionModel.find({
+      _id: { $in: transferOrderIds },
+    }).session(session);
+    let bins = await BinModel.find({ status: { $ne: "No Available" } }).session(session);
 
-//   try {
-//     const transferOrderIds = req.body.item_details.map((item) => item._id);
-//     const transferOrders = await ProductionModel.find({
-//       _id: { $in: transferOrderIds },
-//     }).session(session);
-//     let bins = await BinModel.find({ Status: { $ne: "No Available" } }).session(
-//       session
-//     );
+    const binAllocations = {};
+    const notAvailableBins = [];
 
-//     // Initialize a map to store bin allocations and array for not available bins
-//     const binAllocations = {};
-//     const notAvailableBins = [];
+    const allocateToBin = (bin, transferOrder) => {
+      const binKey = `${bin._id}`;
 
-//     // Function to check and allocate bins
-//     const allocateToBin = async (bin, transferOrder) => {
-//       const binKey = `${bin._id}`;
+      if (bin.available_capacity >= transferOrder.pallet_qty) {
+        if (!binAllocations[binKey]) {
+          binAllocations[binKey] = {
+            bin,
+            transferOrders: [],
+            allocatedQty: 0,
+            digit_3_codes: bin.digit_3_codes,
+            bin_no: bin.bin_no,
+          };
+        }
+        binAllocations[binKey].transferOrders.push(transferOrder._id);
+        binAllocations[binKey].allocatedQty += transferOrder.pallet_qty;
+        bin.available_capacity -= transferOrder.pallet_qty;
+      } else {
+        notAvailableBins.push({
+          sku_code: transferOrder.sku_code,
+          batch: transferOrder.batch,
+          pallet_qty: transferOrder.pallet_qty,
+          binId: bin._id,
+        });
+      }
+    };
 
-//       // Check if the bin has enough capacity
-//       if (bin.AvailableCapacity >= transferOrder.Pallet_Qty) {
-//         if (!binAllocations[binKey]) {
-//           binAllocations[binKey] = {
-//             bin,
-//             transferOrders: [],
-//             allocatedQty: 0,
-//             threeDigitCode: bin.Code3Digit,
-//             BinNumber: bin.BinNumber,
-//           };
-//         }
-//         binAllocations[binKey].transferOrders.push(transferOrder._id);
-//         binAllocations[binKey].allocatedQty += transferOrder.Pallet_Qty;
-//         bin.AvailableCapacity -= transferOrder.Pallet_Qty;
-//       } else {
-//         // If there's not enough capacity, do not allocate the order
-//         notAvailableBins.push({
-//           SKU_Code: transferOrder.SKU_Code,
-//           Batch: transferOrder.Batch,
-//           Pallet_Qty: transferOrder.Pallet_Qty,
-//           binId: bin._id,
-//         });
-//       }
-//     };
+    transferOrders.forEach((order) => {
+      let allocated = false;
 
-//     // Check for partial bins and fully available bins
-//     transferOrders.forEach((order) => {
-//       let allocated = false;
-//       bins.forEach((bin) => {
-//         if (
-//           bin.AvailableCapacity > 0 &&
-//           bin.AvailableCapacity <= bin.BinCapacity &&
-//           bin.SkuCode === order.SKU_Code &&
-//           bin.Batch === order.Batch
-//         ) {
-//           allocateToBin(bin, order);
-//           allocated = true;
-//         } else if (
-//           bin.AvailableCapacity >= order.Pallet_Qty &&
-//           bin.SkuCode === order.SKU_Code &&
-//           bin.Batch === order.Batch
-//         ) {
-//           allocateToBin(bin, order);
-//           allocated = true;
-//         }
-//       });
+      bins.forEach((bin) => {
+        if (
+          bin.available_capacity > 0 &&
+          bin.available_capacity <= bin.bin_capacity &&
+          bin.sku_code === order.sku_code &&
+          bin.batch === order.batch
+        ) {
+          allocateToBin(bin, order);
+          allocated = true;
+        } else if (
+          bin.available_capacity >= order.pallet_qty &&
+          bin.sku_code === order.sku_code &&
+          bin.batch === order.batch
+        ) {
+          allocateToBin(bin, order);
+          allocated = true;
+        }
+      });
 
-//       if (!allocated) {
-//         notAvailableBins.push({
-//           SKU_Code: order.SKU_Code,
-//           Batch: order.Batch,
-//           Pallet_Qty: order.Pallet_Qty,
-//         });
-//       }
-//     });
+      if (!allocated) {
+        notAvailableBins.push({
+          sku_code: order.sku_code,
+          batch: order.batch,
+          pallet_qty: order.pallet_qty,
+        });
+      }
+    });
 
-//     // If there are any not available bins, abort the transaction and return an error response
-//     if (notAvailableBins.length > 0) {
-//       await session.abortTransaction();
-//       session.endSession();
+    if (notAvailableBins.length > 0) {
+      await session.abortTransaction();
+      session.endSession();
 
-//       // Construct a detailed error message
-//       const message = `Bins are not available for the required pallet quantity:\n${notAvailableBins
-//         .map(
-//           (bin) =>
-//             `SKU_Code: ${bin.SKU_Code}, Batch: ${bin.Batch}, Pallet_Qty: ${bin.Pallet_Qty}`
-//         )
-//         .join("\n")}`;
+      const message = `Bins are not available for the required pallet quantity:\n${notAvailableBins
+        .map(
+          (bin) =>
+            `SKU Code: ${bin.sku_code}, Batch: ${bin.batch}, Pallet Qty: ${bin.pallet_qty}`
+        )
+        .join("\n")}`;
 
-//       return res.status(400).json({
-//         status: false,
-//         message: message,
-//         result: notAvailableBins,
-//       });
-//     }
+      return res.status(400).json({
+        status: false,
+        message: message,
+        result: notAvailableBins,
+      });
+    }
 
-//     // Update the bins and transfer orders in the database
-//     const binUpdates = Object.values(binAllocations).map(async (allocation) => {
-//       const bin = allocation.bin;
-//       const transferOrderIds = allocation.transferOrders;
+    const binUpdates = Object.values(binAllocations).map(async (allocation) => {
+      const bin = allocation.bin;
+      const transferOrderIds = allocation.transferOrders;
 
-//       try {
-//         console.log("Updating bin:", bin._id);
-//         console.log("With transfer orders:", transferOrderIds);
-//         const newStatus =
-//           bin.AvailableCapacity === 0
-//             ? "No Available"
-//             : bin.AvailableCapacity <= bin.BinCapacity
-//             ? "Partial Available"
-//             : "Available";
-//         await BinModel.updateOne(
-//           { _id: bin._id },
-//           {
-//             AvailableCapacity: bin.AvailableCapacity,
-//             Status: newStatus,
-//           },
-//           { session }
-//         );
+      const newStatus =
+        bin.available_capacity === 0
+          ? "No Available"
+          : bin.available_capacity <= bin.bin_capacity
+          ? "Partial Available"
+          : "Available";
 
-//         await ProductionModel.updateMany(
-//           { _id: { $in: transferOrderIds } },
-//           {
-//             Bin: allocation.BinNumber,
-//             status: "Allocated",
-//             Three_Digit_Codes: allocation.threeDigitCode,
-//           },
-//           { session }
-//         );
-//       } catch (error) {
-//         console.error("Update error:", error);
-//         await session.abortTransaction();
-//         session.endSession();
-//         throw error;
-//       }
-//     });
+      await BinModel.updateOne(
+        { _id: bin._id },
+        {
+          available_capacity: bin.available_capacity,
+          status: newStatus,
+        },
+        { session }
+      );
 
-//     await Promise.all(binUpdates);
+      await ProductionModel.updateMany(
+        { _id: { $in: transferOrderIds } },
+        {
+          bin: allocation.bin_no,
+          status: "Allocated",
+          digit_3_codes: allocation.digit_3_codes,
+        },
+        { session }
+      );
+    });
 
-//     await session.commitTransaction();
-//     session.endSession();
+    await Promise.all(binUpdates);
 
-//     res.status(200).json({
-//       status: true,
-//       message: "Bins allocated successfully",
-//       result: Object.values(binAllocations),
-//     });
-//   } catch (err) {
-//     console.error("Error allocating bins:", err);
-//     if (session.inTransaction()) {
-//       await session.abortTransaction();
-//     }
-//     session.endSession();
-//     res.status(500).json({
-//       status: "error",
-//       message: err.message,
-//     });
-//   }
-// });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      status: true,
+      message: "Bins allocated successfully",
+      result: Object.values(binAllocations),
+    });
+  } catch (err) {
+    console.error("Error allocating bins:", err);
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    session.endSession();
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+});
+

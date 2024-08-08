@@ -1,68 +1,76 @@
 import mongoose from "mongoose";
 const productionSchema = new mongoose.Schema({
-  Production_Line: {
-    type: String,
-    required: true,
-  },
-  Process_Qty: {
-    type: Number,
-    required: true,
-    trim: true,
-    default: 0,
-  },
-  SKU_Code: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  Sku_Description: {
-    type: String,
-    trim: true,
-  },
-  SUT: {
-    type: String,
-    trim: true,
-  },
-  UOM: {
-    type: String,
-    trim: true,
-  },
-  Transfer_Order: {
-    type: Number,
-    trim: true,
-    default: 0,
-  },
-  Pallet_Qty: {
-    type: Number,
-    trim: true,
-    default: 0,
-  },
-  Bin: {
-    type: String,
-    trim: true,
-    default: null,
-  },
-  Assigned_To: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  // Bin: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "BinModel",
-  //   default: null,
+  // production_line: {
+  //   type: String,
+  //   required: true,
   // },
-  Batch: {
+  production_line: {
+    type: mongoose.Types.ObjectId,
+    ref: "production_lines",
+    required: true,
+    trim: true,
+  },
+  process_order_qty: {
+    type: Number,
+    required: true,
+    trim: true,
+    default: 0,
+  },
+  process_order: {  
+    type: Number,
+    required: true,
+    trim: true,
+    default: 0,
+  },
+  sku_code: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  sku_description: {
+    type: String,
+    trim: true,
+  },
+  sut: {
+    type: String,
+    trim: true,
+  },
+  uom: {
+    type: String,
+    trim: true,
+  },
+  transfer_order: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  pallet_qty: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  bin: {
     type: String,
     trim: true,
     default: null,
   },
-  Date: {
+  assigned_to: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+  batch: {
     type: String,
     trim: true,
     default: null,
   },
-  Three_Digit_Codes: {
+  date: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  digit_3_codes: {
     type: String,
     trim: true,
     default: null,

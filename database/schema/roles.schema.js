@@ -61,6 +61,9 @@ const RoleSchema = new mongoose.Schema({
     production_master_create: { type: Boolean, default: false },
     production_master_edit: { type: Boolean, default: false },
     production_master_view: { type: Boolean, default: false },
+    forklift_operator_master_create: { type: Boolean, default: false },
+    forklift_operator_master_edit: { type: Boolean, default: false },
+    forklift_operator_master_view: { type: Boolean, default: false },
   },
   status: { type: Boolean, default: true },
   created_employee_id: {

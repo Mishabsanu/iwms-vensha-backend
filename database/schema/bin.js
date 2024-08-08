@@ -1,70 +1,70 @@
-// import { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
-// const binSchema = new Schema({
-//   StorageType: {
-//     type: String,
-//     required: true,
-//   },
-//   StorageSection: {
-//     type: String,
-//     minlength: 1,
-//     maxlength: 25,
-//     required: true,
-//     trim: true,
-//   },
-//   BinNumber: {
-//     type: String,
-//     minlength: 1,
-//     maxlength: 25,
-//     required: true,
-//     trim: true,
-//   },
-//   Description: {
-//     type: String,
-//     trim: true,
-//     default: null,
-//   },
-//   BinCapacity: {
-//     type: Number,
-//     trim: true,
-//     default: 0,
-//   },
-//   Code3Digit: {
-//     type: String,
-//     trim: true,
-//     default: null,
-//   },
-//   InboundTransferOrder: {
-//     type: Number,
-//     trim: true,
-//     default: null,
-//   },
-//   Batch: {
-//     type: String,
-//     trim: true,
-//     default: null,
-//   },
-//   SkuCode: {
-//     type: String,
-//     trim: true,
-//     default: null,
-//   },
+const binSchema = new Schema({
+  storage_type: {
+    type: String,
+    required: true,
+  },
+  storage_section: {
+    type: String,
+    minlength: 1,
+    maxlength: 25,
+    required: true,
+    trim: true,
+  },
+  bin_no: {
+    type: String,
+    minlength: 1,
+    maxlength: 25,
+    required: true,
+    trim: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  bin_capacity: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  digit_3_codes: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  inbound_transfer_order: {
+    type: Number,
+    trim: true,
+    default: null,
+  },
+  batch: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  sku_code: {
+    type: String,
+    trim: true,
+    default: null,
+  },
 
-//   OutboundTransfeOrder: {
-//     type: String,
-//     trim: true,
-//     default: null,
-//   },
-//   AvailableCapacity: {
-//     type: Number,
-//     trim: true,
-//     default: 0,
-//   },
-//   Status: { type: String },
-//   created_at: { type: Date, default: Date.now },
-//   updated_at: { type: Date, default: Date.now },
-//   deleted_at: { type: Date, default: null },
-// });
+  outbound_transfer_order: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  available_capacity: {
+    type: Number,
+    trim: true,
+    default: 0,
+  },
+  status: { type: String },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+  deleted_at: { type: Date, default: null },
+});
 
-// const BinModel = model("Bin", binSchema);
-// export default BinModel;
+const BinModel = model("BinTable", binSchema);
+export default BinModel;

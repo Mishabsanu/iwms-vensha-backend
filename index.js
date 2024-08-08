@@ -21,7 +21,8 @@ import rolesRouter from "./routes/roles.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import LoadingRouter from "./routes/masters/loading.routes.js";
 import UnLoadingRouter from "./routes/masters/unloading.routes.js";
-import ProductionMasterRouter from "./routes/warehouseExecutive/production.routes.js"
+import ProductionMasterRouter from "./routes/warehouseExecutive/production.routes.js";
+import ForkliftOperatorMasterRouter from "./routes/forkliftOperator.routes.js";
 import { globalErrorHandler } from "./utils/errors/globalErrorHandler.js";
 const Configs = getConfigs();
 mongo_service();
@@ -68,6 +69,10 @@ app.use(`/api/${Configs.server.version}/bin`, BinRouter);
 app.use(`/api/${Configs.server.version}/storage-search`, StorageSearchRouter);
 app.use(`/api/${Configs.server.version}/loading`, LoadingRouter);
 app.use(`/api/${Configs.server.version}/unloading`, UnLoadingRouter);
+app.use(
+  `/api/${Configs.server.version}/forklift-operator`,
+  ForkliftOperatorMasterRouter
+);
 app.use(globalErrorHandler);
 // Error handling for the server
 server.on("error", (error) => {

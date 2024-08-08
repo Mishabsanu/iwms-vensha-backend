@@ -2,8 +2,12 @@ import express from "express";
 import bulk from "../../config/bulkUpload/bulk.js";
 import {
   AddProduction,
+  AllocateBin,
+  BulkUploadBin,
   BulkUploadProduction,
+  FetchAllSkuDetails,
   FetchSkuDetails,
+  ListBin,
   ListProduntion,
 } from "../../controllers/warehouseExecutive/production.js";
 const router = express.Router();
@@ -13,14 +17,15 @@ router.post(
   bulk("/raw_material_bulk_upload").single("excelFile"),
   BulkUploadProduction
 );
-// router.post(
-//   "/bulk-upload-bin",
-//   bulk("/bin_bulk_upload").single("excelFile"),
-//   BulkUploadBin
-// );
+router.post(
+  "/bulk-upload-bin",
+  bulk("/bin_bulk_upload").single("excelFile"),
+  BulkUploadBin
+);
 router.post("/add-production", AddProduction);
 router.post("/list-production", ListProduntion);
 router.get("/sku-details", FetchSkuDetails);
-// router.post("/list-bin", ListBin);
-// router.post("/allocate-bin", AllocateBin);
+router.get("/sku-all-details", FetchAllSkuDetails);
+router.post("/list-bin", ListBin);
+router.post("/allocate-bin", AllocateBin);
 export default router;
