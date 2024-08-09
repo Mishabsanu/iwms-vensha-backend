@@ -104,6 +104,13 @@ const ExtractRequiredPermission = (routeName) => {
     case "/update-vendor":
       return "vendor_master_edit";
 
+    case "/add-outbound":
+      return "outbound_master_create";
+    case "/list-outbound":
+      return "outbound_master_view";
+    case "/update-outbound":
+      return "outbound_master_edit";
+
     case "/add-bin":
       return "bin_master_create";
     case "/list-bin":

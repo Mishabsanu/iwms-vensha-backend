@@ -617,3 +617,232 @@ export const VerifyBin = catchAsync(async (req, res) => {
     });
   }
 });
+
+export const CrossDockerAllocate = catchAsync(async (req, res) => {
+  try {
+    const { items } = req.body;
+    console.log(items, "items");
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "No items provided",
+      });
+    }
+
+    // Create an array to store update promises
+    const updatePromises = items.map(async (item) => {
+      const { id, cross_dock_name } = item;
+
+      // Generate a 3-character code
+      const threeCharCode = "111";
+
+      // Update the production collection
+      return ProductionModel.updateOne(
+        { _id: id }, // Find the document by its ID
+        {
+          $set: {
+            bin: cross_dock_name,
+            digit_3_codes: threeCharCode,
+            status: "Allocated",
+          },
+        } // Set the new values
+      );
+    });
+
+    // Execute all update promises
+    await Promise.all(updatePromises);
+
+    return res.status(200).json({
+      result: items,
+      status: true,
+      message: "Production updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating production:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while updating the production",
+    });
+  }
+});
+
+export const ListStockTable = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "updated_at",
+    sort = "desc",
+    search,
+  } = req.query;
+
+  var searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        { production_line: searchRegex },
+        { sku_code: searchRegex },
+        { sut: searchRegex },
+        { status: searchRegex },
+        { assigned_to: searchRegex },
+        { batch: searchRegex },
+        { bin: searchRegex },
+      ],
+    };
+  }
+
+  const totalDocument = await ProductionModel.countDocuments({
+    ...searchQuery,
+    bin: { $ne: null },
+    status: "verified",
+  });
+  const totalPages = Math.ceil(totalDocument / limit);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = Math.max((validPage - 1) * limit, 0);
+
+  const produntionLineList = await ProductionModel.aggregate([
+    {
+      $match: {
+        ...searchQuery,
+        bin: { $ne: null },
+        status: "verified",
+      },
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+  ]);
+
+  if (produntionLineList) {
+    return res.status(200).json({
+      result: produntionLineList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All ProduntionLine List",
+    });
+  }
+});
+export const ListTransaction = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "updated_at",
+    sort = "desc",
+    search,
+  } = req.query;
+  console.log(search);
+
+  var searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        { production_line: searchRegex },
+        { sku_code: searchRegex },
+        { sut: searchRegex },
+        { status: searchRegex },
+        { assigned_to: searchRegex },
+        { batch: searchRegex },
+        { bin: searchRegex },
+      ],
+    };
+  }
+
+  const totalDocument = await ProductionModel.countDocuments({
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocument / limit);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = Math.max((validPage - 1) * limit, 0);
+
+  const produntionLineList = await ProductionModel.aggregate([
+    {
+      $match: { ...searchQuery },
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+  ]);
+
+  if (produntionLineList) {
+    return res.status(200).json({
+      result: produntionLineList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All ProduntionLine List",
+    });
+  }
+});

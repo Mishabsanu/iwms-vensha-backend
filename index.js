@@ -12,8 +12,9 @@ import MaterialMasterRouter from "./routes/masters/material.routes.js";
 import BinRouter from "./routes/masters/bin.routes.js";
 import StorageTypeRouter from "./routes/masters/storageType.routes.js";
 import StorageSearchRouter from "./routes/masters/storageSearch.routes.js";
-import InboundRouter from "./routes/masters/inbound.routes.js";
 import CustomerRouter from "./routes/masters/customer.routes.js";
+import InboundRouter from "./routes/masters/inbound.routes.js";
+import OutboundRouter from "./routes/warehouseExecutive/outbond.routes.js"
 import VehicleRouter from "./routes/masters/vehicle.routes.js";
 import VendorRouter from "./routes/masters/vendor.routes.js";
 import profileRouter from "./routes/profile.routes.js";
@@ -62,6 +63,7 @@ app.use(
 );
 app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
 app.use(`/api/${Configs.server.version}/inbound`, InboundRouter);
+app.use(`/api/${Configs.server.version}/outbound`, OutboundRouter);
 app.use(`/api/${Configs.server.version}/vendor`, VendorRouter);
 app.use(`/api/${Configs.server.version}/customer`, CustomerRouter);
 app.use(`/api/${Configs.server.version}/vehicle`, VehicleRouter);

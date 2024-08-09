@@ -5,10 +5,13 @@ import {
   AllocateBin,
   BulkUploadBin,
   BulkUploadProduction,
+  CrossDockerAllocate,
   FetchAllSkuDetails,
   FetchSkuDetails,
   ListBin,
   ListProduntion,
+  ListStockTable,
+  ListTransaction,
   VerifyBin,
 } from "../../controllers/warehouseExecutive/production.js";
 const router = express.Router();
@@ -25,9 +28,12 @@ router.post(
 );
 router.post("/add-production", AddProduction);
 router.post("/list-production", ListProduntion);
+router.post("/list-stock-table", ListStockTable);
+router.post("/list-transaction", ListTransaction);
 router.get("/sku-details", FetchSkuDetails);
 router.get("/sku-all-details", FetchAllSkuDetails);
 router.post("/list-bin", ListBin);
 router.post("/allocate-bin", AllocateBin);
+router.post("/cross-docker-allocate", CrossDockerAllocate);
 router.post("/verify-bin", VerifyBin);
 export default router;

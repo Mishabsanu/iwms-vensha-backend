@@ -5,6 +5,7 @@ import catchAsync from "../utils/errors/catchAsync.js";
 import { IdRequired } from "../utils/response/response.js";
 
 import ProductionModel from "../database/schema/warehouseExecutive/production.js";
+import UserModel from "../database/schema/user.schema.js";
 
 export const AddForkliftOperator = catchAsync(async (req, res) => {
   const authForkliftOperatorDetail = req.forkliftOperatorDetails;
@@ -93,8 +94,29 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
     sort = "desc",
     search,
   } = req.query;
+  const authUserDetail = req.userDetails;
+  const userId = authUserDetail._id; // Get the authenticated user's ID
 
-  var searchQuery = { deleted_at: null };
+  // Fetch user and their role details
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id"); // Assuming 'role' is a reference field
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: "User not found",
+    });
+  }
+  console.log(user, "user");
+
+  const isAdmin = user.role_id.role_name === "Admin"; // Adjust based on how you store and reference roles
+
+  // Define the base query
+  let searchQuery = { deleted_at: null };
+
+  // If the user is not an admin, filter by the authenticated user's ID
+  if (!isAdmin) {
+    searchQuery = { ...searchQuery, assigned_to: userId };
+  }
+
   if (search) {
     const searchRegex = new RegExp(".*" + search + ".*", "i");
     searchQuery = {
@@ -104,7 +126,6 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
         { sku_code: searchRegex },
         { sut: searchRegex },
         { status: searchRegex },
-        { assigned_to: searchRegex },
         { batch: searchRegex },
         { bin: searchRegex },
       ],
@@ -113,7 +134,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
 
   const totalDocument = await ProductionModel.countDocuments({
     ...searchQuery,
-    bin: { $ne: null }, // Add this line to count only documents where bin is not null
+    bin: { $ne: null }, // Count only documents where bin is not null
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -165,6 +186,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
       },
     },
   ]);
+
   if (produntionLineList) {
     return res.status(200).json({
       result: produntionLineList,

@@ -73,6 +73,9 @@ const RoleSchema = new mongoose.Schema({
     transfer_order_create: { type: Boolean, default: false },
     transfer_order_edit: { type: Boolean, default: false },
     transfer_order_view: { type: Boolean, default: false },
+    outbound_master_create: { type: Boolean, default: false },
+    outbound_master_edit: { type: Boolean, default: false },
+    outbound_master_view: { type: Boolean, default: false },
   },
   status: { type: Boolean, default: true },
   created_employee_id: {
