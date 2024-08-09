@@ -208,7 +208,10 @@ export const FetchSkuDetails = catchAsync(async (req, res) => {
   try {
     // Find SKUs matching the query
     const skus = await MaterialModel.find({
-      sku_code: new RegExp(q, "i"), // Case-insensitive search
+      $or: [
+        { sku_code: new RegExp(q, "i") }, // Case-insensitive search for sku_code
+        { sku_description: new RegExp(q, "i") }, // Case-insensitive search for sku_description
+      ],
     }).limit(10); // Limit results for performance
 
     // Extract unique SKU codes
@@ -243,7 +246,11 @@ export const FetchAllSkuDetails = catchAsync(async (req, res) => {
 
     // Use aggregation to get unique sku_code, sku_decr, and sut
     const result = await MaterialModel.aggregate([
-      { $match: { sku_code: sku_code } },
+      {
+        $match: {
+          $or: [{ sku_code: sku_code }, { sku_description: sku_code }],
+        },
+      },
       {
         $group: {
           _id: "$sku_code",
@@ -289,49 +296,88 @@ export const FetchAllSkuDetails = catchAsync(async (req, res) => {
 });
 
 export const AddProduction = catchAsync(async (req, res) => {
-  const { process_order_qty, pallet_qty } = req.body;
+  try {
+    const { process_order_qty, pallete_qty, assigned_to } = req.body;
 
-  // Calculate the number of full pallets and the remaining quantity
-  const fullPalletsCount = Math.floor(process_order_qty / pallet_qty);
-  const remainingQty = process_order_qty % pallet_qty;
+    // Ensure correct types
+    const processOrderQty = Number(process_order_qty);
+    const palletQty = Number(pallete_qty);
 
-  // Get the latest transfer order number from the database
-  const latestProduction = await ProductionModel.findOne().sort({
-    transfer_order: -1,
-  });
-  const startingTransferOrderNo = latestProduction
-    ? latestProduction.transfer_order + 1
-    : 1;
+    if (isNaN(processOrderQty) || isNaN(palletQty)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid quantity values provided",
+      });
+    }
 
-  // Create production entries for the full pallets
-  const productionEntries = [];
+    // Calculate the number of full pallets and the remaining quantity
+    const fullPalletsCount = Math.floor(processOrderQty / palletQty);
+    const remainingQty = processOrderQty % palletQty;
 
-  for (let i = 0; i < fullPalletsCount; i++) {
-    productionEntries.push({
-      ...req.body,
-      pallet_qty: pallet_qty,
-      transfer_order: startingTransferOrderNo + i,
+    console.log("Full Pallets Count:", fullPalletsCount);
+    console.log("Remaining Quantity:", remainingQty);
+
+    // Get the latest transfer order number from the database
+    const latestProduction = await ProductionModel.findOne().sort({
+      transfer_order: -1,
+    });
+    const startingTransferOrderNo = latestProduction
+      ? latestProduction.transfer_order + 1
+      : 1;
+
+    // Determine how many assigned_to IDs are available
+    const assignedToCount = assigned_to.length;
+
+    console.log("Assigned To IDs:", assigned_to);
+
+    // Create production entries for the full pallets
+    const productionEntries = [];
+
+    // Determine how many production entries to create (full pallets + possibly one more for remaining quantity)
+    const totalEntries = fullPalletsCount + (remainingQty > 0 ? 1 : 0);
+
+    console.log("Total Entries:", totalEntries);
+
+    for (let i = 0; i < totalEntries; i++) {
+      // Calculate the pallet quantity for the current entry
+      const currentPalletQty = i < fullPalletsCount ? palletQty : remainingQty;
+
+      // Calculate the assigned_to index (looping if there are more entries than assigned_to IDs)
+      const assignedToIndex = i % assignedToCount;
+
+      productionEntries.push({
+        ...req.body,
+        pallet_qty: currentPalletQty,
+        transfer_order: startingTransferOrderNo + i,
+        assigned_to: assigned_to[assignedToIndex], // Assign the corresponding ID
+      });
+
+      console.log("Production Entry Created:", productionEntries[i]);
+    }
+
+    // Log the productionEntries to verify the data before saving
+    console.log("Production Entries to be saved:", productionEntries);
+
+    // Save all production entries to the database
+    const savedProductions = await ProductionModel.insertMany(
+      productionEntries
+    );
+
+    return res.status(201).json({
+      result: savedProductions,
+      status: true,
+      message: "Production entries created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating production entries:", error);
+    return res.status(500).json({
+      status: false,
+      message: "An error occurred while creating production entries",
+      error: error.message,
     });
   }
-
-  // Add the remaining quantity as the last production entry if there's any
-  if (remainingQty > 0) {
-    productionEntries.push({
-      ...req.body,
-      pallet_qty: remainingQty,
-      transfer_order: startingTransferOrderNo + fullPalletsCount,
-    });
-  }
-
-  // Save all production entries to the database
-  const savedProductions = await ProductionModel.insertMany(productionEntries);
-
-  return res.status(201).json({
-    result: savedProductions,
-    status: true,
-    message: "Production entries created successfully",
-  });
 });
+
 export const ListBin = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -347,13 +393,15 @@ export const ListBin = catchAsync(async (req, res) => {
     searchQuery = {
       ...searchQuery,
       $or: [
-        { StorageType: searchRegex },
-        { BinNumber: searchRegex },
-        { Code3Digit: searchRegex },
-        { Status: searchRegex },
+        { storage_type: searchRegex },
+        { bin_no: searchRegex },
+        {
+          digit_3_codes: searchRegex,
+        },
+        { status: searchRegex },
 
-        { Batch: searchRegex },
-        { SkuCode: searchRegex },
+        { batch: searchRegex },
+        { sku_code: searchRegex },
       ],
     };
   }
@@ -397,7 +445,9 @@ export const AllocateBin = catchAsync(async (req, res) => {
     const transferOrders = await ProductionModel.find({
       _id: { $in: transferOrderIds },
     }).session(session);
-    let bins = await BinModel.find({ status: { $ne: "No Available" } }).session(session);
+    let bins = await BinModel.find({ status: { $ne: "No Available" } }).session(
+      session
+    );
 
     const binAllocations = {};
     const notAvailableBins = [];
@@ -531,3 +581,39 @@ export const AllocateBin = catchAsync(async (req, res) => {
   }
 });
 
+export const VerifyBin = catchAsync(async (req, res) => {
+  try {
+    // Extracting digit_3_codes and _id from the request body
+    const { digit_3_codes, _id } = req.body;
+    console.log(digit_3_codes, _id);
+
+    // Fetching the document by _id
+    const production = await ProductionModel.findById(_id);
+    if (!production) {
+      return res.status(404).json({
+        status: false,
+        message: "Bin not found",
+      });
+    }
+    // Checking if the provided digit_3_codes matches the one in the database
+    if (production.digit_3_codes === digit_3_codes) {
+      production.status = "verified"; // Update with your actual field name for status
+      await production.save();
+      return res.status(200).json({
+        status: true,
+        message: "Digit codes match",
+      });
+    } else {
+      return res.status(400).json({
+        status: false,
+        message: "Digit codes do not match",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying bin:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while verifying the bin",
+    });
+  }
+});

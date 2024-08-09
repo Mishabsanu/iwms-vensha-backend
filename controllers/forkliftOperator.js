@@ -84,6 +84,7 @@ export const UpdateForkliftOperator = catchAsync(async (req, res) => {
     message: "ForkliftOperator updated successfully",
   });
 });
+
 export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -93,7 +94,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
     search,
   } = req.query;
 
-  let searchQuery = { deleted_at: null };
+  var searchQuery = { deleted_at: null };
   if (search) {
     const searchRegex = new RegExp(".*" + search + ".*", "i");
     searchQuery = {
@@ -110,44 +111,24 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
     };
   }
 
-  // Step 1: Count the distinct batch and sku_code combinations
-  const totalDistinctCombinations = await ProductionModel.aggregate([
-    { $match: { ...searchQuery, bin: { $ne: null } } },
-    {
-      $group: {
-        _id: {
-          batch: "$batch",
-          sku_code: "$sku_code",
-        },
-      },
-    },
-    {
-      $count: "total",
-    },
-  ]);
-
-  const totalDocument =
-    totalDistinctCombinations.length > 0
-      ? totalDistinctCombinations[0].total
-      : 0;
+  const totalDocument = await ProductionModel.countDocuments({
+    ...searchQuery,
+    bin: { $ne: null }, // Add this line to count only documents where bin is not null
+  });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
-  // Step 2: Retrieve the distinct batch and sku_code combinations with pagination
-  const distinctValues = await ProductionModel.aggregate([
-    { $match: { ...searchQuery, bin: { $ne: null } } },
+  const produntionLineList = await ProductionModel.aggregate([
     {
-      $group: {
-        _id: {
-          batch: "$batch",
-          sku_code: "$sku_code",
-        },
-        doc: { $first: "$$ROOT" },
+      $match: {
+        ...searchQuery,
+        bin: { $ne: null },
+        status: { $ne: "verified" },
       },
     },
     {
-      $sort: { [`doc.${sortBy}`]: sort === "desc" ? -1 : 1 },
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
     },
     {
       $skip: skip,
@@ -156,18 +137,41 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
       $limit: limit,
     },
     {
-      $replaceRoot: { newRoot: "$doc" },
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
     },
   ]);
-
-  return res.status(200).json({
-    result: distinctValues,
-    status: true,
-    totalPages: totalPages,
-    currentPage: validPage,
-    message:
-      distinctValues.length > 0
-        ? "Distinct Batch and SKU Codes"
-        : "No Distinct Batch and SKU Codes Found",
-  });
+  if (produntionLineList) {
+    return res.status(200).json({
+      result: produntionLineList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All ProductionLine List",
+    });
+  }
 });

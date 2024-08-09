@@ -40,6 +40,14 @@ const ExtractRequiredPermission = (routeName) => {
     case "/list-material-master":
       return "material_master_view";
 
+    // crossDocker modules
+    case "/add-cross-dock-master":
+      return "cross_dock_master_create";
+    case "/update-cross-dock-master":
+      return "cross_dock_master_edit";
+    case "/list-cross-dock-master":
+      return "cross_dock_master_view";
+
     // pallete modules
 
     case "/add-pallete-master":

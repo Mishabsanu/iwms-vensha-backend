@@ -9,6 +9,7 @@ import {
   FetchSkuDetails,
   ListBin,
   ListProduntion,
+  VerifyBin,
 } from "../../controllers/warehouseExecutive/production.js";
 const router = express.Router();
 //Raw Veneer
@@ -28,4 +29,5 @@ router.get("/sku-details", FetchSkuDetails);
 router.get("/sku-all-details", FetchAllSkuDetails);
 router.post("/list-bin", ListBin);
 router.post("/allocate-bin", AllocateBin);
+router.post("/verify-bin", VerifyBin);
 export default router;

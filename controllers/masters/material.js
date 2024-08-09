@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import XLSX from "xlsx";
 import catchAsync from "../../utils/errors/catchAsync.js";
 import { DynamicSearch } from "../../utils/dynamicSearch/dynamic.js";
 import MaterialModel from "../../database/schema/masters/materials.schema.js";
@@ -17,6 +17,57 @@ export const AddMaterialMaster = catchAsync(async (req, res) => {
     status: true,
     message: "Material created successfully",
   });
+});
+
+export const BulkUploadMaterial = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  if (!file || !file.path) {
+    return res.status(400).json({
+      result: [],
+      status: false,
+      message: "No file uploaded or file path not found.",
+    });
+  }
+
+  const session = await MaterialModel.startSession();
+  session.startTransaction();
+
+  try {
+    const workbook = XLSX.readFile(file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet, {
+      dateNF: "dd-mm-yyyy",
+      raw: false,
+    });
+    console.log(data, "data");
+
+    if (data.length === 0) {
+      return res.status(400).json({
+        result: [],
+        status: false,
+        message: "No items found in the uploaded file.",
+      });
+    }
+    await MaterialModel.insertMany(data, {
+      session,
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({
+      result: [],
+      status: true,
+      message: "Material Bulk uploaded successfully.",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
 });
 
 export const UpdateMaterialMaster = catchAsync(async (req, res) => {
