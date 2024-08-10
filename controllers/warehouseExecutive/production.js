@@ -25,7 +25,7 @@ export const BulkUploadProduction = catchAsync(async (req, res, next) => {
       dateNF: "dd-mm-yyyy",
       raw: false,
     });
-    console.log(data, "data");
+    // console.log(data, "data");
 
     if (data.length === 0) {
       return res.status(400).json({
@@ -115,7 +115,7 @@ export const ListProduntion = catchAsync(async (req, res) => {
     sort = "desc",
     search,
   } = req.query;
-  console.log(search);
+  // console.log(search);
 
   var searchQuery = { deleted_at: null };
   if (search) {
@@ -217,7 +217,7 @@ export const FetchSkuDetails = catchAsync(async (req, res) => {
     // Extract unique SKU codes
     // const matchedSkuCodes = [...new Set(skus.map((sku) => sku.sku_code))];
 
-    console.log(skus, "matchedSkuCodes");
+    // console.log(skus, "matchedSkuCodes");
 
     return res.status(200).json({
       status: "success",
@@ -328,7 +328,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     // Determine how many assigned_to IDs are available
     const assignedToCount = assigned_to.length;
 
-    console.log("Assigned To IDs:", assigned_to);
+    // console.log("Assigned To IDs:", assigned_to);
 
     // Create production entries for the full pallets
     const productionEntries = [];
@@ -336,7 +336,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     // Determine how many production entries to create (full pallets + possibly one more for remaining quantity)
     const totalEntries = fullPalletsCount + (remainingQty > 0 ? 1 : 0);
 
-    console.log("Total Entries:", totalEntries);
+    // console.log("Total Entries:", totalEntries);
 
     for (let i = 0; i < totalEntries; i++) {
       // Calculate the pallet quantity for the current entry
@@ -767,7 +767,7 @@ export const ListTransaction = catchAsync(async (req, res) => {
     sort = "desc",
     search,
   } = req.query;
-  console.log(search);
+  // console.log(search);
 
   var searchQuery = { deleted_at: null };
   if (search) {

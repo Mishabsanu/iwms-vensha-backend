@@ -67,30 +67,85 @@ export const ListOutbound = catchAsync(async (req, res) => {
   }
 });
 
+// export const AddOutbound = catchAsync(async (req, res) => {
+//   const orderNumber = Date.now();
+//   const customerName = req.body.entity_name;
+//      console.log("customerName",customerName)
+//   // Find the most recent order for this customer
+//   const lastOrder = await OutboundModel.findOne({
+//     customer_name: customerName,
+//   }).sort({ created_at: -1 });
+
+//   // Initialize the order count
+//   let orderCount;
+
+//   if (lastOrder) {
+//     // If the last order exists for this customer, check if it's the same order
+//     if (lastOrder) {
+//       // If it's the same order, keep the same order count
+//       orderCount = lastOrder.order_count;
+//     } else {
+//       // If it's a different order, increment the order count
+//       orderCount = lastOrder.order_count + 1;
+//     }
+//   } else {
+//     // If no previous order exists, this is the first order for the customer
+//     orderCount = 1;
+//   }
+
+//   // Create new production data
+//   const productionData = {
+//     ...req.body,
+//     order_number: orderNumber,
+//     order_count: orderCount,
+//   };
+
+//   // Save the new order
+//   const newProductionList = new OutboundModel(productionData);
+//   const savedProduction = await newProductionList.save();
+
+//   // Counting unique SKU codes for this customer
+//   const skuCount = await OutboundModel.distinct("sku_code", {
+//     entity_name: customerName,
+//   }).then((result) => result.length);
+
+//   // Summing order quantities for this customer
+//   const orderQty = await OutboundModel.aggregate([
+//     { $match: { entity_name: customerName } }, // Filter by customer
+//     { $group: { _id: null, totalQty: { $sum: "$stock_qty" } } },
+//   ]).then((result) => result[0]?.totalQty || 0);
+
+//   // Update the saved document with SKU count and total order quantity
+//   savedProduction.sku_count = skuCount;
+//   savedProduction.order_qty_count = orderQty;
+
+//   await savedProduction.save(); // Save the updated document
+//    console.log("savedProduction",savedProduction);
+//   return res.status(201).json({
+//     result: savedProduction,
+//     status: true,
+//     message: "Order created successfully with customer-specific counts",
+//   });
+// });
+
+import mongoose from "mongoose";
+
 export const AddOutbound = catchAsync(async (req, res) => {
   const orderNumber = Date.now();
-  const customerName = req.body.customer_name;
+  const customerName = new mongoose.Types.ObjectId(req.body.entity_name); // Ensure this is an ObjectId
+  console.log("customerName", customerName);
 
   // Find the most recent order for this customer
   const lastOrder = await OutboundModel.findOne({
-    customer_name: customerName,
+    entity_name: customerName,
   }).sort({ created_at: -1 });
 
   // Initialize the order count
-  let orderCount;
+  let orderCount = 1; // Default to 1 if no previous orders exist
 
   if (lastOrder) {
-    // If the last order exists for this customer, check if it's the same order
-    if (lastOrder) {
-      // If it's the same order, keep the same order count
-      orderCount = lastOrder.order_count;
-    } else {
-      // If it's a different order, increment the order count
-      orderCount = lastOrder.order_count + 1;
-    }
-  } else {
-    // If no previous order exists, this is the first order for the customer
-    orderCount = 1;
+    // If a previous order exists for this customer, increment the order count
+    orderCount = lastOrder.order_count+1 ;
   }
 
   // Create new production data
@@ -106,12 +161,12 @@ export const AddOutbound = catchAsync(async (req, res) => {
 
   // Counting unique SKU codes for this customer
   const skuCount = await OutboundModel.distinct("sku_code", {
-    customer_name: customerName,
+    entity_name: customerName,
   }).then((result) => result.length);
 
   // Summing order quantities for this customer
   const orderQty = await OutboundModel.aggregate([
-    { $match: { customer_name: customerName } }, // Filter by customer
+    { $match: { entity_name: customerName } }, // Filter by customer
     { $group: { _id: null, totalQty: { $sum: "$stock_qty" } } },
   ]).then((result) => result[0]?.totalQty || 0);
 
@@ -120,6 +175,7 @@ export const AddOutbound = catchAsync(async (req, res) => {
   savedProduction.order_qty_count = orderQty;
 
   await savedProduction.save(); // Save the updated document
+  console.log("savedProduction", savedProduction);
 
   return res.status(201).json({
     result: savedProduction,
@@ -127,3 +183,5 @@ export const AddOutbound = catchAsync(async (req, res) => {
     message: "Order created successfully with customer-specific counts",
   });
 });
+
+
