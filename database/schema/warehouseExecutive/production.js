@@ -16,7 +16,7 @@ const productionSchema = new mongoose.Schema({
     trim: true,
     default: 0,
   },
-  process_order: {  
+  process_order: {
     type: Number,
     required: true,
     trim: true,
@@ -65,6 +65,13 @@ const productionSchema = new mongoose.Schema({
     trim: true,
     default: null,
   },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+
   date: {
     type: String,
     trim: true,

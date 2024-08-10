@@ -14,6 +14,7 @@ import {
   ListTransaction,
   VerifyBin,
 } from "../../controllers/warehouseExecutive/production.js";
+import CheckRoleAndTokenAccess from "../../middlewares/permission.js";
 const router = express.Router();
 //Raw Veneer
 router.post(
@@ -26,10 +27,10 @@ router.post(
   bulk("/bin_bulk_upload").single("excelFile"),
   BulkUploadBin
 );
-router.post("/add-production", AddProduction);
-router.post("/list-production", ListProduntion);
-router.post("/list-stock-table", ListStockTable);
-router.post("/list-transaction", ListTransaction);
+router.post("/add-production", CheckRoleAndTokenAccess, AddProduction);
+router.post("/list-production", CheckRoleAndTokenAccess, ListProduntion);
+router.post("/list-stock-table", CheckRoleAndTokenAccess, ListStockTable);
+router.post("/list-transaction", CheckRoleAndTokenAccess, ListTransaction);
 router.get("/sku-details", FetchSkuDetails);
 router.get("/sku-all-details", FetchAllSkuDetails);
 router.post("/list-bin", ListBin);

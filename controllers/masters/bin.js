@@ -6,16 +6,34 @@ import storageTypeModel from "../../database/schema/masters/storageType.schema.j
 
 export const AddBinMaster = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
-  const binData = {
-    ...req.body,
-    created_employee_id: authUserDetail._id,
-  };
-  const newBinList = new BinModel(binData);
-  const savedBin = await newBinList.save();
+  const { bin_capacity, bin_no } = req.body;
+
+  // Create an array to hold the bin combinations
+  const binCombinations = [];
+
+  // Loop through the bin capacity to generate combinations
+  for (let i = 1; i <= bin_capacity; i++) {
+    // Generate the bin combination
+    const binCombination = `${bin_no}-${i}`;
+
+    // Create the bin data object
+    const binData = {
+      ...req.body,
+      bin_combination: binCombination,
+      created_employee_id: authUserDetail._id,
+    };
+
+    // Add the bin data to the array
+    binCombinations.push(binData);
+  }
+
+  // Save all bin combinations to the database at once
+  const savedBins = await BinModel.insertMany(binCombinations);
+
   return res.status(201).json({
-    result: savedBin,
+    result: savedBins,
     status: true,
-    message: "Bin created successfully",
+    message: "Bins created successfully",
   });
 });
 
