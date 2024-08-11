@@ -70,6 +70,13 @@ const VendorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+
   updated_at: {
     type: Date,
     default: Date.now,

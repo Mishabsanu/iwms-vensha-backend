@@ -6,16 +6,34 @@ import storageTypeModel from "../../database/schema/masters/storageType.schema.j
 
 export const AddBinMaster = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
-  const binData = {
-    ...req.body,
-    created_employee_id: authUserDetail._id,
-  };
-  const newBinList = new BinModel(binData);
-  const savedBin = await newBinList.save();
+  const { bin_capacity, bin_no } = req.body;
+
+  // Create an array to hold the bin combinations
+  const binCombinations = [];
+
+  // Loop through the bin capacity to generate combinations
+  for (let i = 1; i <= bin_capacity; i++) {
+    // Generate the bin combination
+    const binCombination = `${bin_no}-${i}`;
+
+    // Create the bin data object
+    const binData = {
+      ...req.body,
+      bin_combination: binCombination,
+      created_employee_id: authUserDetail._id,
+    };
+
+    // Add the bin data to the array
+    binCombinations.push(binData);
+  }
+
+  // Save all bin combinations to the database at once
+  const savedBins = await BinModel.insertMany(binCombinations);
+
   return res.status(201).json({
-    result: savedBin,
+    result: savedBins,
     status: true,
-    message: "Bin created successfully",
+    message: "Bins created successfully",
   });
 });
 
@@ -48,38 +66,30 @@ export const UpdateBinMaster = catchAsync(async (req, res) => {
 
 export const ListBinMaster = catchAsync(async (req, res) => {
   const {
-    string,
-    boolean,
-    numbers,
-    arrayField = [],
-  } = req?.body?.searchFields || {};
-  const {
     page = 1,
     limit = 10,
     sortBy = "updated_at",
     sort = "desc",
+    search,
   } = req.query;
-  const search = req.query.search || "";
-  let searchQuery = {};
-  if (search != "" && req?.body?.searchFields) {
-    const searchdata = DynamicSearch(
-      search,
-      boolean,
-      numbers,
-      string,
-      arrayField
-    );
-    if (searchdata?.length == 0) {
-      return res.status(404).json({
-        statusCode: 404,
-        status: false,
-        data: {
-          user: [],
+
+  let searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        {
+          storage_type: searchRegex,
         },
-        message: "Results Not Found",
-      });
-    }
-    searchQuery = searchdata;
+        { storage_section: searchRegex },
+        { bin_no: searchRegex },
+        { bin_combination: searchRegex },
+        { type: searchRegex },
+        { description: searchRegex },
+        { digit_3_code: searchRegex },
+      ],
+    };
   }
   const totalDocument = await BinModel.countDocuments({
     ...searchQuery,
