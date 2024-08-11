@@ -615,7 +615,7 @@ export const VerifyBin = catchAsync(async (req, res) => {
       const now = new Date();
       const formattedDateTime = now.toISOString();
       production.confirm_date = formattedDateTime;
-      production.status = "verified"; // Update with your actual field name for status
+      production.status = "Verified"; // Update with your actual field name for status
       await production.save();
       return res.status(200).json({
         status: true,
@@ -714,7 +714,7 @@ export const ListStockTable = catchAsync(async (req, res) => {
   const totalDocument = await ProductionModel.countDocuments({
     ...searchQuery,
     bin: { $ne: null },
-    status: "verified",
+    status: "Verified",
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -725,7 +725,7 @@ export const ListStockTable = catchAsync(async (req, res) => {
       $match: {
         ...searchQuery,
         bin: { $ne: null },
-        status: "verified",
+        status: "Verified",
       },
     },
     {

@@ -259,7 +259,7 @@ export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, 
       $match: {
         ...searchQuery,
         bin: { $ne: null },
-        status: { $ne: "verified" },
+        status: { $ne: "Verified" },
       },
     },
     {
