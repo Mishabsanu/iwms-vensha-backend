@@ -62,6 +62,13 @@ const VehicleSchema = new mongoose.Schema({
     type: Date,
   
   },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+
   created_at: {
     type: Date,
     default: Date.now,

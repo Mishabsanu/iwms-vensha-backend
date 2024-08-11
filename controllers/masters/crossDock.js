@@ -50,38 +50,23 @@ export const UpdateCrossDockMaster = catchAsync(async (req, res) => {
 
 export const ListCrossDockMaster = catchAsync(async (req, res) => {
   const {
-    string,
-    boolean,
-    numbers,
-    arrayField = [],
-  } = req?.body?.searchFields || {};
-  const {
     page = 1,
     limit = 10,
     sortBy = "updated_at",
     sort = "desc",
+    search,
   } = req.query;
-  const search = req.query.search || "";
-  let searchQuery = {};
-  if (search != "" && req?.body?.searchFields) {
-    const searchdata = DynamicSearch(
-      search,
-      boolean,
-      numbers,
-      string,
-      arrayField
-    );
-    if (searchdata?.length == 0) {
-      return res.status(404).json({
-        statusCode: 404,
-        status: false,
-        data: {
-          user: [],
+  let searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [
+        {
+          cross_dock_name: searchRegex,
         },
-        message: "Results Not Found",
-      });
-    }
-    searchQuery = searchdata;
+      ],
+    };
   }
   const totalDocument = await CrossDockModel.countDocuments({
     ...searchQuery,

@@ -66,5 +66,5 @@ const binSchema = new Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const BinModel = model("BinTable", binSchema);
-export default BinModel;
+const BinSModel = model("BinTable", binSchema);
+export default BinSModel;

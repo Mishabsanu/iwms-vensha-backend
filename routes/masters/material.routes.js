@@ -13,6 +13,7 @@ const router = express.Router();
 router.post(
   "/bulk-upload-material",
   bulk("/material_bulk_upload").single("excelFile"),
+  CheckRoleAndTokenAccess,
   BulkUploadMaterial
 );
 router.post("/add-material-master", CheckRoleAndTokenAccess, AddMaterialMaster);
