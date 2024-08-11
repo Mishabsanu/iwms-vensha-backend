@@ -712,7 +712,7 @@ export const ListStockTable = catchAsync(async (req, res) => {
   const totalDocument = await ProductionModel.countDocuments({
     ...searchQuery,
     bin: { $ne: null },
-    status: "verified",
+    status: "Verified",
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -723,7 +723,7 @@ export const ListStockTable = catchAsync(async (req, res) => {
       $match: {
         ...searchQuery,
         bin: { $ne: null },
-        status: "verified",
+        status: "Verified",
       },
     },
     {
