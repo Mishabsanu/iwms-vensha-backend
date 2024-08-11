@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import UserModel from "../../database/schema/user.schema.js";
 import StorageSearchModel from "../../database/schema/masters/storageSearch.schema.js";
 import BinModel from "../../database/schema/masters/bin.schema.js";
+import RolesModel from "../../database/schema/roles.schema.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -906,24 +907,74 @@ export const ListTransaction = catchAsync(async (req, res) => {
 });
 
 export const GetAllStatusCount = catchAsync(async (req, res) => {
+  const authUserDetail = req.userDetails;
+  const userId = authUserDetail._id;
+
+  // Fetch user and their role details
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id"); // Assuming 'role' is a reference field
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: "User not found",
+    });
+  }
+
+  const isAdmin = user.role_id.role_name === "Admin"; // Adjust based on how you store and reference roles
+  let searchQuery = { deleted_at: null };
+  if (!isAdmin) {
+    searchQuery = { ...searchQuery, created_employee_id: userId };
+  }
+
   const statusCounts = await ProductionModel.aggregate([
     {
-      $group: {
-        _id: "$status", // Group by the 'status' field
-        count: { $sum: 1 }, // Sum 1 for each document in the group
+      $facet: {
+        // Group by status and count
+        statusCounts: [
+          {
+            $match: {
+              deleted_at: { $eq: null },
+              ...searchQuery, // Filter out documents where deleted_at is not null
+            },
+          },
+          {
+            $group: {
+              _id: "$status", // Group by the 'status' field
+              count: { $sum: 1 }, // Sum 1 for each document in the group
+            },
+          },
+          {
+            $project: {
+              status: "$_id", // Rename '_id' to 'status'
+              count: 1, // Include the count in the output
+              _id: 0, // Exclude the '_id' field from the output
+            },
+          },
+        ],
+        // Count deleted documents
+        deletedCount: [
+          {
+            $match: {
+              deleted_at: { $ne: null }, // Match documents where deleted_at is not null
+            },
+          },
+          {
+            $count: "count", // Count the number of documents
+          },
+        ],
       },
     },
     {
       $project: {
-        status: "$_id", // Rename '_id' to 'status'
-        count: 1, // Include the count in the output
-        _id: 0, // Exclude the '_id' field from the output
+        statusCounts: 1,
+        deletedCount: {
+          $arrayElemAt: ["$deletedCount.count", 0], // Extract the count value from the array
+        },
       },
     },
   ]);
 
   // Transform the array into an object with status as keys
-  const statusCountObject = statusCounts.reduce((acc, cur) => {
+  const statusCountObject = statusCounts[0].statusCounts.reduce((acc, cur) => {
     acc[cur.status] = cur.count;
     return acc;
   }, {});
@@ -931,8 +982,9 @@ export const GetAllStatusCount = catchAsync(async (req, res) => {
   res.status(200).json({
     data: {
       pending: statusCountObject["Pending"] || 0,
-      verified: statusCountObject["verified"] || 0,
+      verified: statusCountObject["Verified"] || 0,
       allocated: statusCountObject["Allocated"] || 0,
+      deleted: statusCounts[0].deletedCount || 0,
     },
     status: true,
     message: "Status List",
@@ -1200,5 +1252,94 @@ export const UpdateProduntionMaster = catchAsync(async (req, res) => {
     result: produntionLine,
     status: true,
     message: "Updated successfully",
+  });
+});
+
+export const GetForkliftTaskCounts = catchAsync(async (req, res) => {
+  // Step 1: Find Forklift Operated Role ID
+  const forkliftRole = await RolesModel.findOne({
+    role_name: "Forklift Operator",
+  });
+  if (!forkliftRole) {
+    return res.status(404).json({
+      status: false,
+      message: "Forklift Operator role not found",
+    });
+  }
+
+  // Step 2: Find Users with the Forklift Role ID
+  const users = await UserModel.find({ role_id: forkliftRole._id }).select(
+    "_id"
+  );
+  const userIds = users.map((user) => user._id);
+
+  // If no users found, return a response
+  if (userIds.length === 0) {
+    return res.status(404).json({
+      status: false,
+      message: "No users with Forklift Operator role found",
+    });
+  }
+
+  // Step 3: Aggregate task counts by user and status
+  const taskCounts = await ProductionModel.aggregate([
+    {
+      $match: {
+        assigned_to: { $in: userIds },
+        deleted_at: { $eq: null },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          userId: "$assigned_to",
+          status: "$status",
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: "$_id.userId",
+        pendingCount: {
+          $sum: {
+            $cond: [{ $eq: ["$_id.status", "Pending"] }, "$count", 0],
+          },
+        },
+        verifiedCount: {
+          $sum: {
+            $cond: [{ $eq: ["$_id.status", "Verified"] }, "$count", 0],
+          },
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "users", // Assuming your users collection is named "users"
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $unwind: "$user",
+    },
+    {
+      $project: {
+        _id: 0,
+        userId: "$_id",
+        first_name: "$user.first_name",
+        last_name: "$user.last_name",
+        pendingCount: 1,
+        verifiedCount: 1,
+      },
+    },
+  ]);
+
+  // Step 4: Return the results
+  res.status(200).json({
+    data: taskCounts,
+    status: true,
+    message: "User task counts retrieved successfully",
   });
 });
