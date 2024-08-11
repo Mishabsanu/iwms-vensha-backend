@@ -54,9 +54,21 @@ const productionSchema = new mongoose.Schema({
     trim: true,
     default: null,
   },
+  bin_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "bins",
+    default: null,
+    trim: true,
+  },
   assigned_to: {
     type: mongoose.Types.ObjectId,
     ref: "users",
+    required: true,
+    trim: true,
+  },
+  material_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "materials",
     required: true,
     trim: true,
   },
@@ -77,7 +89,17 @@ const productionSchema = new mongoose.Schema({
     trim: true,
     default: null,
   },
+  confirm_date: {
+    type: String,
+    trim: true,
+    default: null,
+  },
   digit_3_codes: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  transaction_type: {
     type: String,
     trim: true,
     default: null,

@@ -49,7 +49,7 @@ const MaterialSchema = new mongoose.Schema({
     trim: true,
   },
   item_life: {
-    type: Number,
+    type: String,
   },
   sut: {
     type: String,
@@ -59,7 +59,7 @@ const MaterialSchema = new mongoose.Schema({
   sut_qty: {
     type: Number,
   },
-  pallete_qty: {
+  pallet_qty: {
     type: Number,
   },
   unit: {
@@ -83,29 +83,29 @@ const MaterialSchema = new mongoose.Schema({
     trim: true,
   },
   length: {
-    type: Number,
+    type: String,
   },
   breadth: {
-    type: Number,
+    type: String,
   },
   height: {
-    type: Number,
+    type: String,
   },
   total_craft: {
-    type: Number,
+    type: String,
   },
   gross_weight: {
-    type: Number,
+    type: String,
   },
   actual_weight: {
-    type: Number,
+    type: String,
   },
   excel_filename: {
     type: String,
 
     trim: true,
   },
-  sku_grp: {
+  sku_group: {
     type: String,
 
     trim: true,
@@ -125,11 +125,11 @@ const MaterialSchema = new mongoose.Schema({
     enum: ["active", "inactive"],
     default: "active",
   },
-  // created_employee_id: {
-  //   type: mongoose.Types.ObjectId,
-  //   ref: "users",
-  //   required: true,
-  // },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },

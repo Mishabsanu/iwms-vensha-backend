@@ -68,6 +68,13 @@ const CustomerSchema = new mongoose.Schema({
 
     default: 0,
   },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+
   created_at: {
     type: Date,
     default: Date.now,

@@ -123,7 +123,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
     searchQuery = {
       ...searchQuery,
       $or: [
-        { production_Line: searchRegex },
+        { production_line: searchRegex },
         { sku_code: searchRegex },
         { sut: searchRegex },
         { status: searchRegex },
@@ -146,7 +146,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
       $match: {
         ...searchQuery,
         bin: { $ne: null },
-        status: { $ne: "verified" },
+        status: { $in: ["Allocated", "Overflow"] },
       },
     },
     {

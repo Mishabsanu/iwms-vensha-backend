@@ -21,6 +21,7 @@ export const AddMaterialMaster = catchAsync(async (req, res) => {
 
 export const BulkUploadMaterial = catchAsync(async (req, res, next) => {
   const file = req.file;
+
   if (!file || !file.path) {
     return res.status(400).json({
       result: [],
@@ -42,15 +43,22 @@ export const BulkUploadMaterial = catchAsync(async (req, res, next) => {
     console.log(data, "data");
 
     if (data.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         result: [],
         status: false,
         message: "No items found in the uploaded file.",
       });
     }
-    await MaterialModel.insertMany(data, {
-      session,
-    });
+
+    const authUserDetail = req.userDetails;
+    const materialData = data.map((item) => ({
+      ...item,
+      created_employee_id: authUserDetail._id,
+    }));
+
+    await MaterialModel.insertMany(materialData, { session });
 
     await session.commitTransaction();
     session.endSession();
@@ -58,7 +66,7 @@ export const BulkUploadMaterial = catchAsync(async (req, res, next) => {
     return res.status(201).json({
       result: [],
       status: true,
-      message: "Material Bulk uploaded successfully.",
+      message: "Material bulk uploaded successfully.",
     });
   } catch (error) {
     await session.abortTransaction();
@@ -99,38 +107,19 @@ export const UpdateMaterialMaster = catchAsync(async (req, res) => {
 
 export const ListMaterialMaster = catchAsync(async (req, res) => {
   const {
-    string,
-    boolean,
-    numbers,
-    arrayField = [],
-  } = req?.body?.searchFields || {};
-  const {
     page = 1,
     limit = 10,
     sortBy = "updated_at",
     sort = "desc",
+    search,
   } = req.query;
-  const search = req.query.search || "";
-  let searchQuery = {};
-  if (search != "" && req?.body?.searchFields) {
-    const searchdata = DynamicSearch(
-      search,
-      boolean,
-      numbers,
-      string,
-      arrayField
-    );
-    if (searchdata?.length == 0) {
-      return res.status(404).json({
-        statusCode: 404,
-        status: false,
-        data: {
-          user: [],
-        },
-        message: "Results Not Found",
-      });
-    }
-    searchQuery = searchdata;
+  let searchQuery = { deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp(".*" + search + ".*", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [{ sku_code: searchRegex }],
+    };
   }
   const totalDocument = await MaterialModel.countDocuments({
     ...searchQuery,

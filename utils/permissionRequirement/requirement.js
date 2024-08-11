@@ -35,6 +35,8 @@ const ExtractRequiredPermission = (routeName) => {
     // material modules
     case "/add-material-master":
       return "material_master_create";
+    case "/bulk-upload-material":
+      return "material_master_create";
     case "/update-material-master":
       return "material_master_edit";
     case "/list-material-master":
@@ -143,7 +145,13 @@ const ExtractRequiredPermission = (routeName) => {
       return "production_master_create";
     case "/list-production":
       return "production_master_view";
+    case "/get-all-forklift-task-count":
+      return "production_master_view";
+    case "/get-all-status-count":
+      return "production_master_view";
     case "/update-production":
+      return "production_master_edit";
+    case "/update-partial-to-delete-production":
       return "production_master_edit";
 
     case "/list-stock-table":
