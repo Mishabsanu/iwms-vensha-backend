@@ -2,6 +2,7 @@ import express from "express";
 import {
   AddForkliftOperator,
   ListDistinctForkliftOperatorTask,
+  ListDistinctForkliftOperatorTaskOutbound,
   UpdateForkliftOperator
 } from "../controllers/forkliftOperator.js";
 import CheckRoleAndTokenAccess from "../middlewares/permission.js";
@@ -21,6 +22,11 @@ router.post(
   "/list-forklift-operator",
   CheckRoleAndTokenAccess,
   ListDistinctForkliftOperatorTask
+);
+router.post(
+  "/list-forklift-operator-outbound",
+  CheckRoleAndTokenAccess,
+  ListDistinctForkliftOperatorTaskOutbound
 );
 
 export default router;
