@@ -12,9 +12,18 @@ const BinSchema = new mongoose.Schema({
     required: [true, "Storage Section is required."],
     trim: true,
   },
-  bind_no: {
+  bin_no: {
     type: String,
     required: [true, "Bin Number is required."],
+    trim: true,
+  },
+  bin_combination: {
+    type: String,
+    trim: true,
+  },
+  type: {
+    type: String,
+    required: [true, "Type is required."],
     trim: true,
   },
   description: {

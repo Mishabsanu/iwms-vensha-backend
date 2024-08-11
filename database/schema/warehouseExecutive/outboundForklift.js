@@ -1,28 +1,23 @@
 import mongoose from "mongoose";
-const productionSchema = new mongoose.Schema({
-  // production_line: {
-  //   type: String,
-  //   required: true,
-  // },
-  production_line: {
-    type: mongoose.Types.ObjectId,
-    ref: "production_lines",
-    required: true,
-    trim: true,
-  },
-  process_order_qty: {
+const outboundForkliftModel = new mongoose.Schema({
+  order_qty: {
     type: Number,
     required: true,
     trim: true,
     default: 0,
   },
-  process_order: {
+  order_number: {
     type: Number,
     required: true,
     trim: true,
     default: 0,
   },
   sku_code: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  order_type: {
     type: String,
     required: true,
     trim: true,
@@ -39,39 +34,28 @@ const productionSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  transfer_order: {
-    type: Number,
-    trim: true,
-    default: 0,
-  },
-  pallet_qty: {
-    type: Number,
-    trim: true,
-    default: 0,
-  },
   bin: {
     type: String,
     trim: true,
     default: null,
   },
+  // assigned_to: {
+  //   type: mongoose.Types.ObjectId,
+  //   ref: "users",
+  //   required: true,
+  //   trim: true,
+  // },
   assigned_to: {
-    type: mongoose.Types.ObjectId,
-    ref: "users",
-    required: true,
+    type: String,
     trim: true,
+    
   },
-  batch: {
+  customerDetails: {
     type: String,
     trim: true,
     default: null,
   },
-  created_employee_id: {
-    type: mongoose.Types.ObjectId,
-    ref: "users",
-    required: true,
-    trim: true,
-  },
-
+ 
   date: {
     type: String,
     trim: true,
@@ -88,6 +72,7 @@ const productionSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const ProductionModel = mongoose.model("Production", productionSchema);
+const OutboundForkliftModel = mongoose.model("outboundForkliftModel", outboundForkliftModel);
 
-export default ProductionModel;
+export default OutboundForkliftModel;
+

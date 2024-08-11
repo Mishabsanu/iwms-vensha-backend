@@ -139,6 +139,19 @@ const ExtractRequiredPermission = (routeName) => {
     case "/update-loading":
       return "loading_master_edit";
 
+    case "/add-production":
+      return "production_master_create";
+    case "/list-production":
+      return "production_master_view";
+    case "/update-production":
+      return "production_master_edit";
+
+    case "/list-stock-table":
+      return "stock_report_view";
+
+    case "/list-transaction":
+      return "transfer_order_view";
+
     case "/add-unloading":
       return "unloading_master_create";
     case "/list-unloading":
@@ -149,6 +162,8 @@ const ExtractRequiredPermission = (routeName) => {
     case "/add-forklift-operator":
       return "forklift_operator_master_create";
     case "/list-forklift-operator":
+      return "forklift_operator_master_view";
+    case "/list-forklift-operator-outbound":
       return "forklift_operator_master_view";
     case "/update-forklift-operator":
       return "forklift_operator_master_edit";

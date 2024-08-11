@@ -4,6 +4,7 @@ import ProductionModel from "../../database/schema/warehouseExecutive/production
 import catchAsync from "../../utils/errors/catchAsync.js";
 import BinModel from "../../database/schema/bin.js";
 import mongoose from "mongoose";
+import UserModel from "../../database/schema/user.schema.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -116,20 +117,38 @@ export const ListProduntion = catchAsync(async (req, res) => {
     search,
   } = req.query;
   // console.log(search);
+  const authUserDetail = req.userDetails;
+  const userId = authUserDetail._id;
 
-  var searchQuery = { deleted_at: null };
+  // Fetch user and their role details
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id"); // Assuming 'role' is a reference field
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: "User not found",
+    });
+  }
+  console.log(user, "user");
+
+  const isAdmin = user.role_id.role_name === "Admin"; // Adjust based on how you store and reference roles
+  let searchQuery = { deleted_at: null };
+
+  // If the user is not an admin, filter by the authenticated user's ID
+  if (!isAdmin) {
+    searchQuery = { ...searchQuery, created_employee_id: userId };
+  }
+
   if (search) {
     const searchRegex = new RegExp(".*" + search + ".*", "i");
     searchQuery = {
       ...searchQuery,
       $or: [
-        { Production_Line: searchRegex },
-        { SKU_Code: searchRegex },
-        { SUT: searchRegex },
+        { production_Line: searchRegex },
+        { sku_code: searchRegex },
+        { sut: searchRegex },
         { status: searchRegex },
-        { Assigned_To: searchRegex },
-        { Batch: searchRegex },
-        { Bin: searchRegex },
+        { batch: searchRegex },
+        { bin: searchRegex },
       ],
     };
   }
@@ -298,7 +317,7 @@ export const FetchAllSkuDetails = catchAsync(async (req, res) => {
 export const AddProduction = catchAsync(async (req, res) => {
   try {
     const { process_order_qty, pallete_qty, assigned_to } = req.body;
-
+    const authUserDetail = req.userDetails;
     // Ensure correct types
     const processOrderQty = Number(process_order_qty);
     const palletQty = Number(pallete_qty);
@@ -348,6 +367,7 @@ export const AddProduction = catchAsync(async (req, res) => {
       productionEntries.push({
         ...req.body,
         pallet_qty: currentPalletQty,
+        created_employee_id: authUserDetail._id,
         transfer_order: startingTransferOrderNo + i,
         assigned_to: assigned_to[assignedToIndex], // Assign the corresponding ID
       });
