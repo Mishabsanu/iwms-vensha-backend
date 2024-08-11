@@ -615,7 +615,7 @@ export const VerifyBin = catchAsync(async (req, res) => {
       const now = new Date();
       const formattedDateTime = now.toISOString();
       production.confirm_date = formattedDateTime;
-      production.status = "verified"; // Update with your actual field name for status
+      production.status = "Verified"; // Update with your actual field name for status
       await production.save();
       return res.status(200).json({
         status: true,
