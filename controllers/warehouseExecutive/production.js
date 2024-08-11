@@ -29,7 +29,7 @@ export const BulkUploadProduction = catchAsync(async (req, res, next) => {
       dateNF: "dd-mm-yyyy",
       raw: false,
     });
-    console.log(data, "data");
+    // console.log(data, "data");
 
     if (data.length === 0) {
       return res.status(400).json({
@@ -119,7 +119,7 @@ export const ListProduntion = catchAsync(async (req, res) => {
     sort = "desc",
     search,
   } = req.query;
-
+  // console.log(search);
   const authUserDetail = req.userDetails;
   const userId = authUserDetail._id;
 
@@ -240,7 +240,7 @@ export const FetchSkuDetails = catchAsync(async (req, res) => {
     // Extract unique SKU codes
     // const matchedSkuCodes = [...new Set(skus.map((sku) => sku.sku_code))];
 
-    console.log(skus, "matchedSkuCodes");
+    // console.log(skus, "matchedSkuCodes");
 
     return res.status(200).json({
       status: "success",
@@ -347,6 +347,8 @@ export const AddProduction = catchAsync(async (req, res) => {
 
     // Determine how many assigned_to IDs are available
     const assignedToCount = assigned_to.length;
+
+    // console.log("Assigned To IDs:", assigned_to);
 
     // Create production entries for the full pallets
     const productionEntries = [];
@@ -798,7 +800,7 @@ export const ListTransaction = catchAsync(async (req, res) => {
     sort = "desc",
     search,
   } = req.query;
-  console.log(search);
+  // console.log(search);
 
   var searchQuery = { deleted_at: null };
   if (search) {

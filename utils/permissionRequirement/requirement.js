@@ -171,6 +171,8 @@ const ExtractRequiredPermission = (routeName) => {
       return "forklift_operator_master_create";
     case "/list-forklift-operator":
       return "forklift_operator_master_view";
+    case "/list-forklift-operator-outbound":
+      return "forklift_operator_master_view";
     case "/update-forklift-operator":
       return "forklift_operator_master_edit";
 
