@@ -2,24 +2,26 @@ import express from "express";
 import bulk from "../../config/bulkUpload/bulk.js";
 import {
   AddProduction,
-  AllocateBin,
-  BinOverflow,
   BulkUploadBin,
   BulkUploadProduction,
-  CrossDockerAllocate,
   FetchAllSkuDetails,
   FetchSkuDetails,
   GetAllStatusCount,
-  GetForkliftTaskCounts,
   ListBin,
   ListProduntion,
-  ListStockTable,
   ListTransaction,
-  UpdatePartialQtyToDeleteMaster,
   UpdateProduntionMaster,
   VerifyBin,
 } from "../../controllers/warehouseExecutive/production.js";
 import CheckRoleAndTokenAccess from "../../middlewares/permission.js";
+import { ListStockTable } from "../../controllers/warehouseExecutive/stockReport.js";
+import { GetForkliftTaskCounts } from "../../controllers/warehouseExecutive/dashboard.js";
+import {
+  AllocateBin,
+  BinOverflow,
+  CrossDockerAllocate,
+  SetLastPallet,
+} from "../../controllers/warehouseExecutive/prductionAction.js";
 const router = express.Router();
 //Raw Veneer
 router.post(
@@ -39,7 +41,7 @@ router.post("/list-transaction", CheckRoleAndTokenAccess, ListTransaction);
 router.post(
   "/update-partial-to-delete-production",
   CheckRoleAndTokenAccess,
-  UpdatePartialQtyToDeleteMaster
+  SetLastPallet
 );
 router.post(
   "/update-production",

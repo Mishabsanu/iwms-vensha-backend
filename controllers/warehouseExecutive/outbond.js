@@ -1,9 +1,8 @@
-import OutboundModel from "../../database/schema/warehouseExecutive/outbond.schema.js";
-import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
-import  OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
-import catchAsync from "../../utils/errors/catchAsync.js";
 import mongoose from "mongoose";
-import UserModel from "../../database/schema/user.schema.js";
+import OutboundModel from "../../database/schema/warehouseExecutive/outbond.schema.js";
+import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
+import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
+import catchAsync from "../../utils/errors/catchAsync.js";
 
 export const ListOutbound = catchAsync(async (req, res) => {
   const {
