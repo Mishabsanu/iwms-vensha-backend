@@ -66,6 +66,17 @@ const productionSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  last_pallate_status: {
+    type: Boolean,
+    trim: true,
+    default: false,
+  },
+  over_flow_status: {
+    type: Boolean,
+    trim: true,
+    default: false,
+  },
+  
   material_id: {
     type: mongoose.Types.ObjectId,
     ref: "materials",

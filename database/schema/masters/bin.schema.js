@@ -21,6 +21,10 @@ const BinSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  bin_combination_no: {
+    type: Number,
+    trim: true,
+  },
   type: {
     type: String,
     required: [true, "Type is required."],
