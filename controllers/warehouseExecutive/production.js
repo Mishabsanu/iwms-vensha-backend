@@ -370,7 +370,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     // console.log("Assigned To IDs:", assigned_to);
 
     // Create production entries for the full pallets
-    const productionEntries = [];
+    const productionEntries = []; 
 
     // Determine how many production entries to create (full pallets + possibly one more for remaining quantity)
     const totalEntries = fullPalletsCount + (remainingQty > 0 ? 1 : 0);
