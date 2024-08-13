@@ -43,11 +43,7 @@ const MaterialSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  sku_description: {
-    type: String,
-
-    trim: true,
-  },
+ 
   item_life: {
     type: String,
   },

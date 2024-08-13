@@ -1,26 +1,25 @@
 import mongoose from "mongoose";
 const outboundSchema = new mongoose.Schema({
-  stock_qty: {
-    type: Number,
-    required: true,
-    trim: true,
-    default: 0,
-  },
-  sku_code: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  sku_description: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  sut: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  skus: [
+    {
+      sku_code: {
+        type: String,
+        trim: true,
+      },
+      sku_description: {
+        type: String,
+        trim: true,
+      },
+      sut: {
+        type: String,
+        trim: true,
+      },
+      stock_qty: {
+        type: String,
+        trim: true,
+      },
+    }
+  ],
   order_type: {
     type: String,
     required: true,
@@ -45,20 +44,22 @@ const outboundSchema = new mongoose.Schema({
     required: [true, "Date is required."],
   },
 
-  order_count: {
-    type: Number,
-    default: 1,
-  },
-  sku_count: {
+  totalStockQty: {
     type: Number,
     default: 0,
   },
-  order_qty_count: {
+  totalSkuCount: {
     type: Number,
     default: 0,
   },
 
-  // status: { type: String, default: "Pending" },
+  batch: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+
+   status: { type: String, default: "Pending" },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },

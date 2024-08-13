@@ -39,17 +39,12 @@ const outboundForkliftModel = new mongoose.Schema({
     trim: true,
     default: null,
   },
-  // assigned_to: {
-  //   type: mongoose.Types.ObjectId,
-  //   ref: "users",
-  //   required: true,
-  //   trim: true,
-  // },
-  assigned_to: {
-    type: String,
-    trim: true,
+  assigned_to: [{
+    type: mongoose.Types.ObjectId,
+    ref: "users",
     
-  },
+  }],
+ 
   customerDetails: {
     type: String,
     trim: true,
@@ -62,6 +57,11 @@ const outboundForkliftModel = new mongoose.Schema({
     default: null,
   },
   digit_3_codes: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  batch: {
     type: String,
     trim: true,
     default: null,
