@@ -5,6 +5,7 @@ import MaterialModel from "../../database/schema/masters/materials.schema.js";
 import UserModel from "../../database/schema/user.schema.js";
 import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
+import StockModel from "../../database/schema/stock/stock.shema.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -370,7 +371,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     // console.log("Assigned To IDs:", assigned_to);
 
     // Create production entries for the full pallets
-    const productionEntries = []; 
+    const productionEntries = [];
 
     // Determine how many production entries to create (full pallets + possibly one more for remaining quantity)
     const totalEntries = fullPalletsCount + (remainingQty > 0 ? 1 : 0);
@@ -636,6 +637,33 @@ export const VerifyBin = catchAsync(async (req, res) => {
       production.confirm_date = formattedDateTime;
       production.status = "Verified"; // Update with your actual field name for status
       await production.save();
+      const authUserDetail = req.userDetails;
+      const newStockEntry = new StockModel({
+        process_order_qty: production.process_order_qty,
+        process_order: production.process_order,
+        sku_code: production.sku_code,
+        sku_description: production.sku_description,
+        sut: production.sut,
+        uom: production.uom,
+        transfer_order: production.transfer_order,
+        pallet_qty: production.pallet_qty,
+        bin: production.bin,
+        bin_id: production.bin_id,
+        assigned_to: production.assigned_to,
+        last_pallate_status: production.last_pallate_status,
+        over_flow_status: production.over_flow_status,
+        material_id: production.material_id,
+        batch: production.batch,
+        created_employee_id: authUserDetail._id,
+        date: production.date,
+        confirm_date: formattedDateTime,
+        digit_3_codes: production.digit_3_codes,
+        transaction_type: production.transaction_type,
+      });
+
+      await newStockEntry.save();
+
+      await newStockEntry.save();
       return res.status(200).json({
         status: true,
         message: "Digit codes match",
@@ -654,7 +682,6 @@ export const VerifyBin = catchAsync(async (req, res) => {
     });
   }
 });
-
 
 export const ListTransaction = catchAsync(async (req, res) => {
   const {
@@ -886,3 +913,20 @@ export const UpdateProduntionMaster = catchAsync(async (req, res) => {
   });
 });
 
+export const ListProductionWithOutPermission = catchAsync(async (req, res) => {
+  try {
+    // Assuming "process_order" is the field you want to get unique values for
+    const uniqueProcessOrders = await ProductionModel.distinct("process_order");
+    return res.status(200).json({
+      result: uniqueProcessOrders,
+      status: true,
+      message: "Unique Process Orders List",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "An error occurred while fetching unique process orders.",
+      error: error.message,
+    });
+  }
+});
