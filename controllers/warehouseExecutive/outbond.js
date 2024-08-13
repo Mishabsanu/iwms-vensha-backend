@@ -5,6 +5,7 @@ import ProductionModel from "../../database/schema/warehouseExecutive/production
 import catchAsync from "../../utils/errors/catchAsync.js";
 import UserModel from "../../database/schema/user.schema.js";
 import RolesModel from "../../database/schema/roles.schema.js";
+import StockModel from "../../database/schema/stock/stock.shema.js";
 
 
 
@@ -94,9 +95,8 @@ export const CrossDockPickup = catchAsync(async (req, res) => {
       // Assuming skus is an array within modifyList
       if (Array.isArray(item.skus) && item.skus.length > 0) {
         for (let skuItem of item.skus) {
-          const existingItem = await ProductionModel.findOne({
+          const existingItem = await StockModel.findOne({
             sku_code: skuItem.sku_code,
-            status: "Verified",
           });
 
           if (existingItem) {

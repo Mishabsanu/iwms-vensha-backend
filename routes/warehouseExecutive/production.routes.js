@@ -8,6 +8,7 @@ import {
   FetchSkuDetails,
   GetAllStatusCount,
   ListBin,
+  ListProductionWithOutPermission,
   ListProduntion,
   ListTransaction,
   UpdateProduntionMaster,
@@ -64,7 +65,8 @@ router.get("/sku-all-details", FetchAllSkuDetails);
 router.post("/list-bin", ListBin);
 router.post("/allocate-bin", AllocateBin);
 router.post("/cross-docker-allocate", CrossDockerAllocate);
-router.post("/verify-bin", VerifyBin);
+router.post("/verify-bin",CheckRoleAndTokenAccess, VerifyBin);
 router.post("/bin-overflow-allocate", BinOverflow);
+router.get("/get-production", ListProductionWithOutPermission);
 router.post("/verify-bin-outbound", VerifyBinoutbound);
 export default router;
