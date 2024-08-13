@@ -7,6 +7,7 @@ import { IdRequired } from "../utils/response/response.js";
 import ProductionModel from "../database/schema/warehouseExecutive/production.js";
 import OutboundForkliftModel from "../database/schema/warehouseExecutive/outboundForklift.js";
 import UserModel from "../database/schema/user.schema.js";
+import MaterialModel from "../database/schema/masters/materials.schema.js";
 
 export const AddForkliftOperator = catchAsync(async (req, res) => {
   const authForkliftOperatorDetail = req.forkliftOperatorDetails;
@@ -198,9 +199,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
     });
   }
 });
-
-
-export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, res) => {
+export const ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, res) => {
   const {
     page = 1,
     limit = 10,
@@ -212,21 +211,18 @@ export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, 
   const userId = authUserDetail._id; // Get the authenticated user's ID
 
   // Fetch user and their role details
-  const user = await UserModel.findOne({ _id: userId }).populate("role_id"); // Assuming 'role' is a reference field
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id");
   if (!user) {
     return res.status(404).json({
       status: false,
       message: "User not found",
     });
   }
- 
 
-  const isAdmin = user.role_id.role_name === "Admin"; // Adjust based on how you store and reference roles
+  const isAdmin = user.role_id.role_name === "Admin";
 
-  // Define the base query
   let searchQuery = { deleted_at: null };
 
-  // If the user is not an admin, filter by the authenticated user's ID
   if (!isAdmin) {
     searchQuery = { ...searchQuery, assigned_to: userId };
   }
@@ -248,13 +244,13 @@ export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, 
 
   const totalDocument = await OutboundForkliftModel.countDocuments({
     ...searchQuery,
-    bin: { $ne: null }, // Count only documents where bin is not null
+    bin: { $ne: null },
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
-  const produntionLineList = await OutboundForkliftModel.aggregate([
+  let produntionLineList = await OutboundForkliftModel.aggregate([
     {
       $match: {
         ...searchQuery,
@@ -263,7 +259,7 @@ export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, 
       },
     },
     {
-      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+      $sort: { [sortBy]: sort === "desc" ? -1 : 1 },
     },
     {
       $skip: skip,
@@ -273,41 +269,195 @@ export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, 
     },
     {
       $lookup: {
-        from: "users", // The name of the User collection
-        localField: "assigned_to", // The field in ProductionModel to match
-        foreignField: "_id", // The field in the User collection to match
-        as: "assigned_user", // The name of the field to add the matched documents
+        from: "users",
+        localField: "assigned_to",
+        foreignField: "_id",
+        as: "assigned_user",
       },
     },
     {
       $unwind: {
         path: "$assigned_user",
-        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
       $lookup: {
-        from: "production_lines", // The name of the ProductLine collection
-        localField: "production_line", // The field in ProductionModel to match
-        foreignField: "_id", // The field in the ProductLine collection to match
-        as: "production_line_details", // The name of the field to add the matched documents
+        from: "production_lines",
+        localField: "production_line",
+        foreignField: "_id",
+        as: "production_line_details",
       },
     },
     {
       $unwind: {
         path: "$production_line_details",
-        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+        preserveNullAndEmptyArrays: true,
       },
     },
   ]);
-   console.log("produntionLineList",produntionLineList)
-  if (produntionLineList) {
+
+  // Loop through the results to fetch pallet_qty from MaterialMasterModel based on sku_code
+  produntionLineList = await Promise.all(
+    produntionLineList.map(async (item) => {
+      const { sku_code, order_qty } = item;
+
+      // Fetch pallet_qty from MaterialMasterModel based on sku_code
+      const materialMaster = await MaterialModel.findOne({ sku_code });
+
+      if (!materialMaster) return item; // Skip if no material master data is found
+console.log('====================================');
+console.log(materialMaster,'materialMaster');
+console.log('====================================');
+      const { pallet_qty } = materialMaster;
+
+      const fullPallets = Math.floor(order_qty / pallet_qty);
+      const remainderQty = order_qty % pallet_qty;
+
+      let entries = [];
+
+      // Generate full pallet entries
+      for (let i = 0; i < fullPallets; i++) {
+        entries.push({ ...item, quantity: pallet_qty });
+      }
+
+      // Generate remainder entry
+      if (remainderQty > 0) {
+        entries.push({ ...item, quantity: remainderQty });
+      }
+
+      return entries;
+    })
+  );
+
+  // Flatten the list of entries
+  produntionLineList = produntionLineList.flat();
+   console.log(" produntionLineList", produntionLineList);
+  if (produntionLineList.length) {
     return res.status(200).json({
       result: produntionLineList,
       status: true,
-      totalPages: totalPages,
+      totalPages,
       currentPage: validPage,
       message: "All ProductionLine List",
     });
+  } else {
+    return res.status(404).json({
+      status: false,
+      message: "No ProductionLine found",
+    });
   }
 });
+
+
+// export const  ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, res) => {
+//   const {
+//     page = 1,
+//     limit = 10,
+//     sortBy = "updated_at",
+//     sort = "desc",
+//     search,
+//   } = req.query;
+//   const authUserDetail = req.userDetails;
+//   const userId = authUserDetail._id; // Get the authenticated user's ID
+
+//   // Fetch user and their role details
+//   const user = await UserModel.findOne({ _id: userId }).populate("role_id"); // Assuming 'role' is a reference field
+//   if (!user) {
+//     return res.status(404).json({
+//       status: false,
+//       message: "User not found",
+//     });
+//   }
+ 
+
+//   const isAdmin = user.role_id.role_name === "Admin"; // Adjust based on how you store and reference roles
+
+//   // Define the base query
+//   let searchQuery = { deleted_at: null };
+
+//   // If the user is not an admin, filter by the authenticated user's ID
+//   if (!isAdmin) {
+//     searchQuery = { ...searchQuery, assigned_to: userId };
+//   }
+
+//   if (search) {
+//     const searchRegex = new RegExp(".*" + search + ".*", "i");
+//     searchQuery = {
+//       ...searchQuery,
+//       $or: [
+//         { production_Line: searchRegex },
+//         { sku_code: searchRegex },
+//         { sut: searchRegex },
+//         { status: searchRegex },
+//         { batch: searchRegex },
+//         { bin: searchRegex },
+//       ],
+//     };
+//   }
+
+//   const totalDocument = await OutboundForkliftModel.countDocuments({
+//     ...searchQuery,
+//     bin: { $ne: null },
+//   });
+//   const totalPages = Math.ceil(totalDocument / limit);
+//   const validPage = Math.min(Math.max(page, 1), totalPages);
+//   const skip = Math.max((validPage - 1) * limit, 0);
+
+//   const produntionLineList = await OutboundForkliftModel.aggregate([
+//     {
+//       $match: {
+//         ...searchQuery,
+//         bin: { $ne: null },
+//         status: { $ne: "Verified" },
+//       },
+//     },
+//     {
+//       $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+//     },
+//     {
+//       $skip: skip,
+//     },
+//     {
+//       $limit: limit,
+//     },
+//     {
+//       $lookup: {
+//         from: "users", // The name of the User collection
+//         localField: "assigned_to", // The field in ProductionModel to match
+//         foreignField: "_id", // The field in the User collection to match
+//         as: "assigned_user", // The name of the field to add the matched documents
+//       },
+//     },
+//     {
+//       $unwind: {
+//         path: "$assigned_user",
+//         preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "production_lines", // The name of the ProductLine collection
+//         localField: "production_line", // The field in ProductionModel to match
+//         foreignField: "_id", // The field in the ProductLine collection to match
+//         as: "production_line_details", // The name of the field to add the matched documents
+//       },
+//     },
+//     {
+//       $unwind: {
+//         path: "$production_line_details",
+//         preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+//       },
+//     },
+//   ]);
+//    console.log("produntionLineList",produntionLineList)
+//   if (produntionLineList) {
+//     return res.status(200).json({
+//       result: produntionLineList,
+//       status: true,
+//       totalPages: totalPages,
+//       currentPage: validPage,
+//       message: "All ProductionLine List",
+//     });
+//   }
+// });
