@@ -5,7 +5,7 @@ import MaterialModel from "../../database/schema/masters/materials.schema.js";
 import UserModel from "../../database/schema/user.schema.js";
 import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
-import StockModel from "../../database/schema/stock/stock.shema.js";
+import StockModel from "../../database/schema/stock/stock.schema.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -927,6 +927,84 @@ export const ListProductionWithOutPermission = catchAsync(async (req, res) => {
       status: false,
       message: "An error occurred while fetching unique process orders.",
       error: error.message,
+    });
+  }
+});
+
+export const ListProductionReport = catchAsync(async (req, res) => {
+
+
+  const { processOrder, sortBy = "created_at", sort = "desc" } = req.body;
+  const authUserDetail = req.userDetails;
+  const userId = authUserDetail._id;
+
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id");
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: "User not found",
+    });
+  }
+
+  const isAdmin = user.role_id.role_name === "Admin";
+  const matchCriteria = {
+    process_order: processOrder,
+  };
+
+  if (!isAdmin) {
+    matchCriteria.created_employee_id = userId; // Restrict to user's own entries if not admin
+  }
+
+  const productionLineList = await ProductionModel.aggregate([
+    {
+      $match: matchCriteria,
+    },
+    {
+      $sort: {
+        [sortBy]: sort === "desc" ? -1 : 1,
+        transfer_order: sort === "desc" ? -1 : 1,
+      },
+    },
+    {
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductionLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductionLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+  ]);
+
+  if (productionLineList) {
+    return res.status(200).json({
+      result: productionLineList,
+      status: true,
+      message: "All ProductionLine List",
+    });
+  } else {
+    return res.status(404).json({
+      status: false,
+      message: "No Production Lines found",
     });
   }
 });

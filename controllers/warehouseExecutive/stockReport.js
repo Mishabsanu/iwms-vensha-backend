@@ -1,4 +1,4 @@
-import StockModel from "../../database/schema/stock/stock.shema.js";
+import StockModel from "../../database/schema/stock/stock.schema.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
 
 export const ListStockTable = catchAsync(async (req, res) => {

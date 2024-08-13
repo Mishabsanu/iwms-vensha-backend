@@ -145,6 +145,8 @@ const ExtractRequiredPermission = (routeName) => {
       return "production_master_create";
     case "/list-production":
       return "production_master_view";
+    case "/production-report":
+      return "production_master_view";
     case "/get-all-forklift-task-count":
       return "production_master_view";
     case "/get-all-status-count":
