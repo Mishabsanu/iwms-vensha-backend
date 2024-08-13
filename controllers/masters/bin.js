@@ -19,6 +19,8 @@ export const AddBinMaster = catchAsync(async (req, res) => {
     // Create the bin data object
     const binData = {
       ...req.body,
+      bin_capacity: 1,
+      bin_combination_no: i,
       bin_combination: binCombination,
       created_employee_id: authUserDetail._id,
     };
@@ -123,8 +125,12 @@ export const ListBinMaster = catchAsync(async (req, res) => {
       $match: { ...searchQuery },
     },
     {
-      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+      $sort: {
+        [sortBy]: sort === "desc" ? -1 : 1,
+        ["bin_combination_no"]: sort === "desc" ? -1 : 1,
+      },
     },
+
     {
       $skip: skip,
     },

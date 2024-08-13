@@ -136,7 +136,8 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
 
   const totalDocument = await ProductionModel.countDocuments({
     ...searchQuery,
-    bin: { $ne: null }, // Count only documents where bin is not null
+    bin: { $ne: null },
+    status: { $in: ["Allocated"] },
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -147,7 +148,7 @@ export const ListDistinctForkliftOperatorTask = catchAsync(async (req, res) => {
       $match: {
         ...searchQuery,
         bin: { $ne: null },
-        status: { $in: ["Allocated", "Overflow"] },
+        status: { $in: ["Allocated"] },
       },
     },
     {
@@ -221,82 +222,83 @@ export const ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, r
 
   const isAdmin = user.role_id.role_name === "Admin";
 
-  let searchQuery = { deleted_at: null };
+      let searchQuery = { deleted_at: null };
 
-  if (!isAdmin) {
-    searchQuery = { ...searchQuery, assigned_to: userId };
-  }
+      if (!isAdmin) {
+      searchQuery = { ...searchQuery, assigned_to: userId };
+    }
 
-  if (search) {
-    const searchRegex = new RegExp(".*" + search + ".*", "i");
-    searchQuery = {
-      ...searchQuery,
-      $or: [
-        { production_Line: searchRegex },
-        { sku_code: searchRegex },
-        { sut: searchRegex },
-        { status: searchRegex },
-        { batch: searchRegex },
-        { bin: searchRegex },
-      ],
-    };
-  }
-
-  const totalDocument = await OutboundForkliftModel.countDocuments({
-    ...searchQuery,
-    bin: { $ne: null },
-  });
-  const totalPages = Math.ceil(totalDocument / limit);
-  const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = Math.max((validPage - 1) * limit, 0);
-
-  let produntionLineList = await OutboundForkliftModel.aggregate([
-    {
-      $match: {
+    if (search) {
+      const searchRegex = new RegExp(".*" + search + ".*", "i");
+      searchQuery = {
         ...searchQuery,
-        bin: { $ne: null },
-        status: { $ne: "Verified" },
-      },
-    },
-    {
-      $sort: { [sortBy]: sort === "desc" ? -1 : 1 },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "assigned_to",
-        foreignField: "_id",
-        as: "assigned_user",
-      },
-    },
-    {
-      $unwind: {
-        path: "$assigned_user",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "production_lines",
-        localField: "production_line",
-        foreignField: "_id",
-        as: "production_line_details",
-      },
-    },
-    {
-      $unwind: {
-        path: "$production_line_details",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-  ]);
+        $or: [
+          { production_Line: searchRegex },
+          { sku_code: searchRegex },
+          { sut: searchRegex },
+          { status: searchRegex },
+          { batch: searchRegex },
+          { bin: searchRegex },
+        ],
+      };
+    }
 
+    const totalDocument = await OutboundForkliftModel.countDocuments({
+      ...searchQuery,
+      bin: { $ne: null },
+      status: { $ne: "Verified" },
+    });
+    const totalPages = Math.ceil(totalDocument / limit);
+    const validPage = Math.min(Math.max(page, 1), totalPages);
+    const skip = Math.max((validPage - 1) * limit, 0);
+
+    let produntionLineList = await OutboundForkliftModel.aggregate([
+      {
+        $match: {
+          ...searchQuery,
+          bin: { $ne: null },
+          status: { $ne: "Verified" },
+        },
+      },
+      {
+        $sort: { [sortBy]: sort === "desc" ? -1 : 1 },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "assigned_to",
+          foreignField: "_id",
+          as: "assigned_user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$assigned_user",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "production_lines",
+          localField: "production_line",
+          foreignField: "_id",
+          as: "production_line_details",
+        },
+      },
+      {
+        $unwind: {
+          path: "$production_line_details",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
+ 
   // Loop through the results to fetch pallet_qty from MaterialMasterModel based on sku_code
   produntionLineList = await Promise.all(
     produntionLineList.map(async (item) => {
@@ -332,16 +334,16 @@ console.log('====================================');
 
   // Flatten the list of entries
   produntionLineList = produntionLineList.flat();
-   console.log(" produntionLineList", produntionLineList);
-  if (produntionLineList.length) {
-    return res.status(200).json({
-      result: produntionLineList,
-      status: true,
-      totalPages,
-      currentPage: validPage,
-      message: "All ProductionLine List",
-    });
-  } else {
+   console.log(" produntionLineList",  produntionLineList);;
+    if (produntionLineList.length) {
+      return res.status(200).json({
+        result: produntionLineList,
+        status: true,
+        totalPages,
+        currentPage: validPage,
+        message: "All ProductionLine List",
+      });
+    } else {
     return res.status(404).json({
       status: false,
       message: "No ProductionLine found",
@@ -460,4 +462,5 @@ console.log('====================================');
 //       message: "All ProductionLine List",
 //     });
 //   }
-// });
+//   }
+);
