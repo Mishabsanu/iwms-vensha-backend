@@ -1,4 +1,4 @@
-import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
+import StockModel from "../../database/schema/stock/stock.schema.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
 
 export const ListStockTable = catchAsync(async (req, res) => {
@@ -27,21 +27,17 @@ export const ListStockTable = catchAsync(async (req, res) => {
     };
   }
 
-  const totalDocument = await ProductionModel.countDocuments({
+  const totalDocument = await StockModel.countDocuments({
     ...searchQuery,
-    bin: { $ne: null },
-    status: "Verified",
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
-  const produntionLineList = await ProductionModel.aggregate([
+  const produntionLineList = await StockModel.aggregate([
     {
       $match: {
         ...searchQuery,
-        bin: { $ne: null },
-        status: "Verified",
       },
     },
     {
@@ -64,20 +60,6 @@ export const ListStockTable = catchAsync(async (req, res) => {
     {
       $unwind: {
         path: "$assigned_user",
-        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
-      },
-    },
-    {
-      $lookup: {
-        from: "production_lines", // The name of the ProductLine collection
-        localField: "production_line", // The field in ProductionModel to match
-        foreignField: "_id", // The field in the ProductLine collection to match
-        as: "production_line_details", // The name of the field to add the matched documents
-      },
-    },
-    {
-      $unwind: {
-        path: "$production_line_details",
         preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
       },
     },

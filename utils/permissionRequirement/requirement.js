@@ -145,10 +145,14 @@ const ExtractRequiredPermission = (routeName) => {
       return "production_master_create";
     case "/list-production":
       return "production_master_view";
+    case "/production-report":
+      return "production_master_view";
     case "/get-all-forklift-task-count":
       return "production_master_view";
     case "/get-all-status-count":
       return "production_master_view";
+    case "/verify-bin":
+      return "production_master_edit";
     case "/update-production":
       return "production_master_edit";
     case "/update-partial-to-delete-production":
@@ -174,6 +178,8 @@ const ExtractRequiredPermission = (routeName) => {
     case "/list-forklift-operator-outbound":
       return "forklift_operator_master_view";
     case "/update-forklift-operator":
+      return "forklift_operator_master_edit";
+    case "/verify-bin":
       return "forklift_operator_master_edit";
 
     default:

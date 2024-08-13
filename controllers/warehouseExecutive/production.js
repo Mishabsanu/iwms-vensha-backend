@@ -5,6 +5,9 @@ import MaterialModel from "../../database/schema/masters/materials.schema.js";
 import UserModel from "../../database/schema/user.schema.js";
 import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
+import StockModel from "../../database/schema/stock/stock.schema.js";
+
+import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -370,7 +373,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     // console.log("Assigned To IDs:", assigned_to);
 
     // Create production entries for the full pallets
-    const productionEntries = []; 
+    const productionEntries = [];
 
     // Determine how many production entries to create (full pallets + possibly one more for remaining quantity)
     const totalEntries = fullPalletsCount + (remainingQty > 0 ? 1 : 0);
@@ -636,6 +639,33 @@ export const VerifyBin = catchAsync(async (req, res) => {
       production.confirm_date = formattedDateTime;
       production.status = "Verified"; // Update with your actual field name for status
       await production.save();
+      const authUserDetail = req.userDetails;
+      const newStockEntry = new StockModel({
+        process_order_qty: production.process_order_qty,
+        process_order: production.process_order,
+        sku_code: production.sku_code,
+        sku_description: production.sku_description,
+        sut: production.sut,
+        uom: production.uom,
+        transfer_order: production.transfer_order,
+        pallet_qty: production.pallet_qty,
+        bin: production.bin,
+        bin_id: production.bin_id,
+        assigned_to: production.assigned_to,
+        last_pallate_status: production.last_pallate_status,
+        over_flow_status: production.over_flow_status,
+        material_id: production.material_id,
+        batch: production.batch,
+        created_employee_id: authUserDetail._id,
+        date: production.date,
+        confirm_date: formattedDateTime,
+        digit_3_codes: production.digit_3_codes,
+        transaction_type: production.transaction_type,
+      });
+
+      await newStockEntry.save();
+
+      await newStockEntry.save();
       return res.status(200).json({
         status: true,
         message: "Digit codes match",
@@ -654,6 +684,47 @@ export const VerifyBin = catchAsync(async (req, res) => {
     });
   }
 });
+
+export const VerifyBinoutbound = catchAsync(async (req, res) => {
+  try {
+    // Extracting digit_3_codes and _id from the request body
+    const { digit_3_codes, _id } = req.body;
+    console.log(digit_3_codes, _id);
+
+    // Fetching the document by _id
+    const production = await OutboundForkliftModel.findById(_id);
+    if (!production) {
+      return res.status(404).json({
+        status: false,
+        message: "Bin not found",
+      });
+    }
+    // Checking if the provided digit_3_codes matches the one in the database
+    if (production.digit_3_codes === digit_3_codes) {
+      const now = new Date();
+      const formattedDateTime = now.toISOString();
+      production.confirm_date = formattedDateTime;
+      production.status = "Closed"; // Update with your actual field name for status
+      await production.save();
+      return res.status(200).json({
+        status: true,
+        message: "Digit codes match",
+      });
+    } else {
+      return res.status(400).json({
+        status: false,
+        message: "Digit codes do not match",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying bin:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while verifying the bin",
+    });
+  }
+});
+
 
 
 export const ListTransaction = catchAsync(async (req, res) => {
@@ -886,3 +957,98 @@ export const UpdateProduntionMaster = catchAsync(async (req, res) => {
   });
 });
 
+export const ListProductionWithOutPermission = catchAsync(async (req, res) => {
+  try {
+    // Assuming "process_order" is the field you want to get unique values for
+    const uniqueProcessOrders = await ProductionModel.distinct("process_order");
+    return res.status(200).json({
+      result: uniqueProcessOrders,
+      status: true,
+      message: "Unique Process Orders List",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "An error occurred while fetching unique process orders.",
+      error: error.message,
+    });
+  }
+});
+
+export const ListProductionReport = catchAsync(async (req, res) => {
+
+
+  const { processOrder, sortBy = "created_at", sort = "desc" } = req.body;
+  const authUserDetail = req.userDetails;
+  const userId = authUserDetail._id;
+
+  const user = await UserModel.findOne({ _id: userId }).populate("role_id");
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: "User not found",
+    });
+  }
+
+  const isAdmin = user.role_id.role_name === "Admin";
+  const matchCriteria = {
+    process_order: processOrder,
+  };
+
+  if (!isAdmin) {
+    matchCriteria.created_employee_id = userId; // Restrict to user's own entries if not admin
+  }
+
+  const productionLineList = await ProductionModel.aggregate([
+    {
+      $match: matchCriteria,
+    },
+    {
+      $sort: {
+        [sortBy]: sort === "desc" ? -1 : 1,
+        transfer_order: sort === "desc" ? -1 : 1,
+      },
+    },
+    {
+      $lookup: {
+        from: "users", // The name of the User collection
+        localField: "assigned_to", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the User collection to match
+        as: "assigned_user", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$assigned_user",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+    {
+      $lookup: {
+        from: "production_lines", // The name of the ProductionLine collection
+        localField: "production_line", // The field in ProductionModel to match
+        foreignField: "_id", // The field in the ProductionLine collection to match
+        as: "production_line_details", // The name of the field to add the matched documents
+      },
+    },
+    {
+      $unwind: {
+        path: "$production_line_details",
+        preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+      },
+    },
+  ]);
+
+  if (productionLineList) {
+    return res.status(200).json({
+      result: productionLineList,
+      status: true,
+      message: "All ProductionLine List",
+    });
+  } else {
+    return res.status(404).json({
+      status: false,
+      message: "No Production Lines found",
+    });
+  }
+});
