@@ -1,11 +1,9 @@
-import mongoose from "mongoose";
+import RolesModel from "../../database/schema/roles.schema.js";
+import StockModel from "../../database/schema/stock/stock.schema.js";
+import UserModel from "../../database/schema/user.schema.js";
 import OutboundModel from "../../database/schema/warehouseExecutive/outbond.schema.js";
 import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
-import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
-import UserModel from "../../database/schema/user.schema.js";
-import RolesModel from "../../database/schema/roles.schema.js";
-import StockModel from "../../database/schema/stock/stock.shema.js";
 
 
 
