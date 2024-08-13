@@ -14,6 +14,7 @@ import {
   ListTransaction,
   UpdateProduntionMaster,
   VerifyBin,
+  VerifyBinoutbound
 } from "../../controllers/warehouseExecutive/production.js";
 import CheckRoleAndTokenAccess from "../../middlewares/permission.js";
 import { ListStockTable } from "../../controllers/warehouseExecutive/stockReport.js";
@@ -69,4 +70,5 @@ router.post("/verify-bin",CheckRoleAndTokenAccess, VerifyBin);
 router.post("/production-report",CheckRoleAndTokenAccess, ListProductionReport);
 router.post("/bin-overflow-allocate", BinOverflow);
 router.get("/get-production", ListProductionWithOutPermission);
+router.post("/verify-bin-outbound", VerifyBinoutbound);
 export default router;

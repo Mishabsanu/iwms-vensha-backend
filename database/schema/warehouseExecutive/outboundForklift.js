@@ -39,11 +39,12 @@ const outboundForkliftModel = new mongoose.Schema({
     trim: true,
     default: null,
   },
-  assigned_to: [{
+  assigned_to: {
     type: mongoose.Types.ObjectId,
     ref: "users",
-    
-  }],
+    required: true,
+    trim: true,
+  },
  
   customerDetails: {
     type: String,

@@ -7,6 +7,8 @@ import ProductionModel from "../../database/schema/warehouseExecutive/production
 import catchAsync from "../../utils/errors/catchAsync.js";
 import StockModel from "../../database/schema/stock/stock.schema.js";
 
+import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
+
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
   if (!file || !file.path) {
@@ -682,6 +684,48 @@ export const VerifyBin = catchAsync(async (req, res) => {
     });
   }
 });
+
+export const VerifyBinoutbound = catchAsync(async (req, res) => {
+  try {
+    // Extracting digit_3_codes and _id from the request body
+    const { digit_3_codes, _id } = req.body;
+    console.log(digit_3_codes, _id);
+
+    // Fetching the document by _id
+    const production = await OutboundForkliftModel.findById(_id);
+    if (!production) {
+      return res.status(404).json({
+        status: false,
+        message: "Bin not found",
+      });
+    }
+    // Checking if the provided digit_3_codes matches the one in the database
+    if (production.digit_3_codes === digit_3_codes) {
+      const now = new Date();
+      const formattedDateTime = now.toISOString();
+      production.confirm_date = formattedDateTime;
+      production.status = "Closed"; // Update with your actual field name for status
+      await production.save();
+      return res.status(200).json({
+        status: true,
+        message: "Digit codes match",
+      });
+    } else {
+      return res.status(400).json({
+        status: false,
+        message: "Digit codes do not match",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying bin:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "An error occurred while verifying the bin",
+    });
+  }
+});
+
+
 
 export const ListTransaction = catchAsync(async (req, res) => {
   const {
