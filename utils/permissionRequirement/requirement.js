@@ -119,6 +119,20 @@ const ExtractRequiredPermission = (routeName) => {
       return "bin_master_view";
     case "/update-bin":
       return "bin_master_edit";
+      
+    case "/add-uom":
+      return "uom_master_create";
+    case "/list-uom":
+      return "uom_master_view";
+    case "/update-uom":
+      return "uom_master_edit";
+      
+    case "/add-bin-type":
+      return "bin_type_master_create";
+    case "/list-bin-type":
+      return "bin_type_master_view";
+    case "/update-bin-type":
+      return "bin_type_master_edit";
 
     case "/add-customer":
       return "customer_master_create";
@@ -160,7 +174,6 @@ const ExtractRequiredPermission = (routeName) => {
 
     case "/list-stock-table":
       return "stock_report_view";
-
     case "/list-transaction":
       return "transfer_order_view";
 

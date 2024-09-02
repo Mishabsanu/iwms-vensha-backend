@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import getConfigs from "../config/config.js";
 
-const Configs=getConfigs()
+const Configs = getConfigs();
 let connect = () => {
   const options = {
     // useNewUrlParser: true
@@ -9,7 +9,9 @@ let connect = () => {
   mongoose.connect(Configs?.mongo?.url, options);
 
   mongoose.connection.on("connected", () => {
-    console.log(`Connected to the MongoDB Database ${Configs?.server?.name} ${Configs?.server?.version}`);
+    console.log(
+      `Connected to the MongoDB Database ${Configs?.server?.name} ${Configs?.server?.version}`
+    );
   });
 
   // If the connection throws an error

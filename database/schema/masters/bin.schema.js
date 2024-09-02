@@ -26,7 +26,8 @@ const BinSchema = new mongoose.Schema({
     trim: true,
   },
   type: {
-    type: String,
+    type: mongoose.Types.ObjectId,
+    ref: "bintypes",
     required: [true, "Type is required."],
     trim: true,
   },
@@ -43,6 +44,17 @@ const BinSchema = new mongoose.Schema({
     required: [true, "3 Digit Code is required."],
     trim: true,
   },
+  created_employee_id: {
+    type: mongoose.Types.ObjectId,
+    ref: "users",
+    required: true,
+    trim: true,
+  },
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "active",
+  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -57,6 +69,6 @@ const BinSchema = new mongoose.Schema({
   },
 });
 
-const BinModel = mongoose.model("Bin", BinSchema);
+const BinModel = mongoose.model("bin", BinSchema);
 
 export default BinModel;

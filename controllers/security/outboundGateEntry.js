@@ -1,22 +1,22 @@
-import InboundModel from "../../database/schema/masters/inbound.schema.js";
+import OutboundGateEntryModel from "../../database/schema/security/outboundGateEntry.schema.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
 
-export const AddInbound = catchAsync(async (req, res) => {
+export const AddGateEntryOutbound = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
   const materialData = {
     ...req.body,
     created_employee_id: authUserDetail._id,
   };
-  const newInboundList = new InboundModel(materialData);
-  const savedInbound = await newInboundList.save();
+  const newOutboundList = new OutboundGateEntryModel(materialData);
+  const savedOutbound = await newOutboundList.save();
   return res.status(201).json({
-    result: savedInbound,
+    result: savedOutbound,
     status: true,
-    message: "Inbound created successfully",
+    message: "Outbound created successfully",
   });
 });
 
-export const UpdateInbound = catchAsync(async (req, res) => {
+export const UpdateGateEntryOutbound = catchAsync(async (req, res) => {
   const materialId = req.query.id;
   const updateData = req.body;
   if (!mongoose.Types.ObjectId.isValid(materialId)) {
@@ -24,7 +24,7 @@ export const UpdateInbound = catchAsync(async (req, res) => {
       .status(400)
       .json({ result: [], status: false, message: "Invalid material ID" });
   }
-  const material = await InboundModel.findByIdAndUpdate(
+  const material = await OutboundGateEntryModel.findByIdAndUpdate(
     materialId,
     { $set: updateData },
     { new: true, runValidators: true }
@@ -43,7 +43,7 @@ export const UpdateInbound = catchAsync(async (req, res) => {
   });
 });
 
-export const ListInbound = catchAsync(async (req, res) => {
+export const ListGateEntryOutbound = catchAsync(async (req, res) => {
   const {
     page = 1,
     limit = 10,
@@ -70,14 +70,14 @@ export const ListInbound = catchAsync(async (req, res) => {
     };
   }
 
-  const totalDocument = await InboundModel.countDocuments({
+  const totalDocument = await OutboundGateEntryModel.countDocuments({
     ...searchQuery,
   });
   const totalPages = Math.ceil(totalDocument / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
-  const produntionLineList = await InboundModel.aggregate([
+  const produntionLineList = await OutboundGateEntryModel.aggregate([
     {
       $match: { ...searchQuery },
     },

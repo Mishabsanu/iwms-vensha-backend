@@ -69,6 +69,6 @@ const InboundSchema = new mongoose.Schema({
   },
 });
 
-const InboundModel = mongoose.model("Inbound", InboundSchema);
+const InboundModel = mongoose.model("inbound", InboundSchema);
 
 export default InboundModel;

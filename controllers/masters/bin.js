@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
-import catchAsync from "../../utils/errors/catchAsync.js";
-import { DynamicSearch } from "../../utils/dynamicSearch/dynamic.js";
 import BinModel from "../../database/schema/masters/bin.schema.js";
 import storageTypeModel from "../../database/schema/masters/storageType.schema.js";
+import catchAsync from "../../utils/errors/catchAsync.js";
 
 export const AddBinMaster = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
@@ -122,6 +121,22 @@ export const ListBinMaster = catchAsync(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: "bintypes",
+        localField: "type",
+        foreignField: "_id",
+       
+        as: "type",
+      },
+    },
+    {
+      $unwind: {
+        path: "$type",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    {
       $match: { ...searchQuery },
     },
     {
@@ -138,6 +153,8 @@ export const ListBinMaster = catchAsync(async (req, res) => {
       $limit: limit,
     },
   ]);
+
+  
   if (binList) {
     return res.status(200).json({
       result: binList,

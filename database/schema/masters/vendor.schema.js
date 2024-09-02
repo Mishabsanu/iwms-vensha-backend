@@ -66,6 +66,14 @@ const VendorSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  latitude: {
+    type: String,
+    trim: true,
+  },
+  longitude: {
+    type: String,
+    trim: true,
+  },
   created_at: {
     type: Date,
     default: Date.now,

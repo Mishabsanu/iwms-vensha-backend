@@ -40,6 +40,6 @@ const loadingSchema = new mongoose.Schema({
   },
 });
 
-const LoadingModel = mongoose.model("Loading", loadingSchema);
+const LoadingModel = mongoose.model("loading", loadingSchema);
 
 export default LoadingModel;

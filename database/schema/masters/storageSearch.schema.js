@@ -28,6 +28,6 @@ const storageSearchSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
-const StorageSearchModel = mongoose.model("StorageSearch", storageSearchSchema);
+const StorageSearchModel = mongoose.model("storageSearch", storageSearchSchema);
 
 export default StorageSearchModel;

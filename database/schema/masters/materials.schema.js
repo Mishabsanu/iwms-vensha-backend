@@ -131,6 +131,6 @@ const MaterialSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const MaterialModel = mongoose.model("Material", MaterialSchema);
+const MaterialModel = mongoose.model("material", MaterialSchema);
 
 export default MaterialModel;
