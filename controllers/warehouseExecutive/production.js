@@ -196,7 +196,7 @@ export const ListProduntion = catchAsync(async (req, res) => {
     },
     {
       $lookup: {
-        from: "production_lines", // The name of the ProductLine collection
+        from: "productionlines", // The name of the ProductLine collection
         localField: "production_line", // The field in ProductionModel to match
         foreignField: "_id", // The field in the ProductLine collection to match
         as: "production_line_details", // The name of the field to add the matched documents
@@ -790,7 +790,7 @@ export const ListTransaction = catchAsync(async (req, res) => {
     },
     {
       $lookup: {
-        from: "production_lines", // The name of the ProductLine collection
+        from: "productionlines", // The name of the ProductLine collection
         localField: "production_line", // The field in ProductionModel to match
         foreignField: "_id", // The field in the ProductLine collection to match
         as: "production_line_details", // The name of the field to add the matched documents
@@ -1025,7 +1025,7 @@ export const ListProductionReport = catchAsync(async (req, res) => {
     },
     {
       $lookup: {
-        from: "production_lines", // The name of the ProductionLine collection
+        from: "productionlines", // The name of the ProductionLine collection
         localField: "production_line", // The field in ProductionModel to match
         foreignField: "_id", // The field in the ProductionLine collection to match
         as: "production_line_details", // The name of the field to add the matched documents

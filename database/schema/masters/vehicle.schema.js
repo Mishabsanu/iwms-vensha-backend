@@ -46,12 +46,12 @@ const VehicleSchema = new mongoose.Schema({
 
   vehicle_capacity: {
     type: String,
-   
+
     trim: true,
   },
   vehicle_owner: {
     type: String,
-   
+
     trim: true,
   },
   vehicle_insurance_number: {
@@ -60,7 +60,6 @@ const VehicleSchema = new mongoose.Schema({
   },
   vehicle_insurance_date: {
     type: Date,
-  
   },
   created_employee_id: {
     type: mongoose.Types.ObjectId,
@@ -68,7 +67,11 @@ const VehicleSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "active",
+  },
   created_at: {
     type: Date,
     default: Date.now,
@@ -83,6 +86,6 @@ const VehicleSchema = new mongoose.Schema({
   },
 });
 
-const VehicleModel = mongoose.model("Vehicle", VehicleSchema);
+const VehicleModel = mongoose.model("vehicle", VehicleSchema);
 
 export default VehicleModel;

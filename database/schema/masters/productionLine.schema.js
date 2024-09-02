@@ -27,7 +27,7 @@ const ProductionLineSchema = new mongoose.Schema({
 });
 
 const ProductionLineModel = mongoose.model(
-  "production_line",
+  "productionLine",
   ProductionLineSchema
 );
 

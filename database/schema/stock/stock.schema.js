@@ -111,6 +111,6 @@ const stockSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const StockModel = mongoose.model("Stock", stockSchema);
+const StockModel = mongoose.model("stock", stockSchema);
 
 export default StockModel;

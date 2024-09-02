@@ -121,6 +121,6 @@ const productionSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const ProductionModel = mongoose.model("Production", productionSchema);
+const ProductionModel = mongoose.model("production", productionSchema);
 
 export default ProductionModel;

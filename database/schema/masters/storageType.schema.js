@@ -26,6 +26,6 @@ const storageTypeSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const storageTypeModel = mongoose.model("storage_type", storageTypeSchema);
+const storageTypeModel = mongoose.model("storageType", storageTypeSchema);
 
 export default storageTypeModel;
