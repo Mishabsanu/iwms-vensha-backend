@@ -308,9 +308,7 @@ export const ListDistinctForkliftOperatorTaskOutbound = catchAsync(async (req, r
       const materialMaster = await MaterialModel.findOne({ sku_code });
 
       if (!materialMaster) return item; // Skip if no material master data is found
-console.log('====================================');
-console.log(materialMaster,'materialMaster');
-console.log('====================================');
+
       const { pallet_qty } = materialMaster;
 
       const fullPallets = Math.floor(order_qty / pallet_qty);
