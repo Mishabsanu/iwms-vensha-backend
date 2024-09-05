@@ -45,13 +45,13 @@ const outboundtransactionModel = new mongoose.Schema({
     required: true,
     trim: true,
   },
- 
+
   customerDetails: {
     type: String,
     trim: true,
     default: null,
   },
- 
+
   date: {
     type: String,
     trim: true,
@@ -73,7 +73,9 @@ const outboundtransactionModel = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const OutboundTransactionModel = mongoose.model("outboundtransactionModel", outboundtransactionModel);
+const OutboundTransactionModel = mongoose.model(
+  "outboundtransactionModel",
+  outboundtransactionModel
+);
 
 export default OutboundTransactionModel;
-

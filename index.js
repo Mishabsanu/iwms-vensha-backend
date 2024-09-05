@@ -23,6 +23,7 @@ import usersRouter from "./routes/users.routes.js";
 import LoadingRouter from "./routes/masters/loading.routes.js";
 import BinTypeRouter from "./routes/masters/binType.routes.js";
 import UomRouter from "./routes/masters/uom.routes.js";
+import AuomRouter from "./routes/masters/auom.routes.js";
 import UnLoadingRouter from "./routes/masters/unloading.routes.js";
 import CrossDockRouter from "./routes/masters/crossDock.routes.js";
 import InboundGateEntryRouter from "./routes/security/inboundGateEntry.routes.js";
@@ -79,12 +80,13 @@ app.use(`/api/${Configs.server.version}/unloading`, UnLoadingRouter);
 app.use(`/api/${Configs.server.version}/cross-dock`, CrossDockRouter);
 app.use(`/api/${Configs.server.version}/bin-type`, BinTypeRouter);
 app.use(`/api/${Configs.server.version}/uom`, UomRouter);
+app.use(`/api/${Configs.server.version}/auom`, AuomRouter);
 app.use(
   `/api/${Configs.server.version}/outbound-gate-entry`,
   OutboundGateEntryRouter
 );
 app.use(
-  `/api/${Configs.server.version}/intbound-gate-entry`,
+  `/api/${Configs.server.version}/inbound-gate-entry`,
   InboundGateEntryRouter
 );
 app.use(

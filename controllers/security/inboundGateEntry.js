@@ -1,6 +1,6 @@
 import InboundGateEntryModel from "../../database/schema/security/inboundGateEntry.schema.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
-
+import mongoose from "mongoose";
 export const AddGateEntryInbound = catchAsync(async (req, res) => {
   const authUserDetail = req.userDetails;
   const materialData = {

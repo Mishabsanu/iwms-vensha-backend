@@ -119,14 +119,35 @@ const ExtractRequiredPermission = (routeName) => {
       return "bin_master_view";
     case "/update-bin":
       return "bin_master_edit";
-      
+
     case "/add-uom":
       return "uom_master_create";
     case "/list-uom":
       return "uom_master_view";
     case "/update-uom":
       return "uom_master_edit";
-      
+
+    case "/add-auom":
+      return "auom_master_create";
+    case "/list-auom":
+      return "auom_master_view";
+    case "/update-auom":
+      return "auom_master_edit";
+
+    case "/add-inbound-gate-entry":
+      return "security_create";
+    case "/list-inbound-gate-entry":
+      return "security_view";
+    case "/update-inbound-gate-entry":
+      return "security_edit";
+
+    case "/add-outbound-gate-entry":
+      return "security_create";
+    case "/list-outbound-gate-entry":
+      return "security_view";
+    case "/update-outbound-gate-entry":
+      return "security_edit";
+
     case "/add-bin-type":
       return "bin_type_master_create";
     case "/list-bin-type":
