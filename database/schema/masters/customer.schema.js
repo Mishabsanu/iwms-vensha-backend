@@ -74,116 +74,115 @@ const CustomerSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  latitude: {
+    type: String,
+    trim: true,
+  },
+  longitude: {
+    type: String,
+    trim: true,
+  },
+  //Bill To Information
 
-//Bill To Information
+  bill_to_code: {
+    type: String,
+    required: [true, "Customer Code is required."],
+    trim: true,
+  },
 
+  bill_to_address: {
+    type: String,
+    required: [true, "Address is required."],
+    trim: true,
+  },
+  bill_to_city: {
+    type: String,
+    required: [true, "City is required."],
+    trim: true,
+  },
+  bill_to_district: {
+    type: String,
+    required: [true, "district is required."],
+    trim: true,
+  },
+  bill_to_state: {
+    type: String,
+    required: [true, "State is required."],
+    trim: true,
+  },
+  bill_pin_code: {
+    type: String,
+    // required: [true, "Pin Code is required."],
+    trim: true,
+  },
+  bill_to_contact_person: {
+    type: String,
+    required: [true, "Contact Person is required."],
+    trim: true,
+  },
+  bill_to_email: {
+    type: String,
+    required: [true, "Contact Person is required."],
+    trim: true,
+  },
+  bill_to_zone: {
+    type: String,
+    required: [true, "zone is required."],
+    trim: true,
+  },
 
-bill_to_code: {
-  type: String,
-  required: [true, "Customer Code is required."],
-  trim: true,
-},
+  //ship To Information
 
-bill_to_address: {
-  type: String,
-  required: [true, "Address is required."],
-  trim: true,
-},
-bill_to_city: {
-  type: String,
-  required: [true, "City is required."],
-  trim: true,
-},
-bill_to_district: {
-  type: String,
-  required: [true, "district is required."],
-  trim: true,
-},
-bill_to_state: {
-  type: String,
-  required: [true, "State is required."],
-  trim: true,
-},
-bill_pin_code: {
-  type: String,
- // required: [true, "Pin Code is required."],
-  trim: true,
-},
-bill_to_contact_person: {
-  type: String,
-  required: [true, "Contact Person is required."],
-  trim: true,
-},
-bill_to_email: {
-  type: String,
-  required: [true, "Contact Person is required."],
-  trim: true,
-},
-bill_to_zone: {
-  type: String,
-  required: [true, "zone is required."],
-  trim: true,
-},
+  ship_to: [
+    {
+      ship_to_code: {
+        type: String,
+        required: [true, "Customer Code is required."],
+        trim: true,
+      },
 
-
-//ship To Information
-
-
-ship_to:[
-{
-ship_to_code: {
-  type: String,
- required: [true, "Customer Code is required."],
-  trim: true,
-},
-
-ship_to_address: {
-  type: String,
-  required: [true, "Address is required."],
-  trim: true,
-},
-ship_to_city: {
-  type: String,
-  required: [true, "City is required."],
-  trim: true,
-},
-ship_to_district: {
-  type: String,
-  required: [true, "district is required."],
-  trim: true,
-},
-ship_to_state: {
-  type: String,
-  required: [true, "State is required."],
-  trim: true,
-},
-// ship_pin_code: {
-//   type: String,
-//   required: [true, "Pin Code is required."],
-//   trim: true,
-// },
-ship_to_contact_person: {
-  type: String,
-  required: [true, "Contact Person is required."],
-  trim: true,
-},
-ship_to_email: {
-  type: String,
-  required: [true, "Contact Person is required."],
-  trim: true,
-},
-ship_to_zone: {
-  type: String,
-  required: [true, "zone is required."],
-  trim: true,
-},
-
-
-}],
-
-
-
-
+      ship_to_address: {
+        type: String,
+        required: [true, "Address is required."],
+        trim: true,
+      },
+      ship_to_city: {
+        type: String,
+        required: [true, "City is required."],
+        trim: true,
+      },
+      ship_to_district: {
+        type: String,
+        required: [true, "district is required."],
+        trim: true,
+      },
+      ship_to_state: {
+        type: String,
+        required: [true, "State is required."],
+        trim: true,
+      },
+      // ship_pin_code: {
+      //   type: String,
+      //   required: [true, "Pin Code is required."],
+      //   trim: true,
+      // },
+      ship_to_contact_person: {
+        type: String,
+        required: [true, "Contact Person is required."],
+        trim: true,
+      },
+      ship_to_email: {
+        type: String,
+        required: [true, "Contact Person is required."],
+        trim: true,
+      },
+      ship_to_zone: {
+        type: String,
+        required: [true, "zone is required."],
+        trim: true,
+      },
+    },
+  ],
   created_at: {
     type: Date,
     default: Date.now,

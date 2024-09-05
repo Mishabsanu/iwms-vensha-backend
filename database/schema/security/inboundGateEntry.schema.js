@@ -69,6 +69,9 @@ const InboundGateEntrySchema = new mongoose.Schema({
   },
 });
 
-const InboundGateEntryModel = mongoose.model("InboundGateEntry", InboundGateEntrySchema);
+const InboundGateEntryModel = mongoose.model(
+  "InboundGateEntry",
+  InboundGateEntrySchema
+);
 
 export default InboundGateEntryModel;
