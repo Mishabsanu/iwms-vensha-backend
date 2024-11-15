@@ -21,6 +21,7 @@ import profileRouter from "./routes/profile.routes.js";
 import rolesRouter from "./routes/roles.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import LoadingRouter from "./routes/masters/loading.routes.js";
+import CustomerTypeMasterRouter from "./routes/masters/customerType.routes.js";
 import BinTypeRouter from "./routes/masters/binType.routes.js";
 import UomRouter from "./routes/masters/uom.routes.js";
 import AuomRouter from "./routes/masters/auom.routes.js";
@@ -30,6 +31,8 @@ import InboundGateEntryRouter from "./routes/security/inboundGateEntry.routes.js
 import OutboundGateEntryRouter from "./routes/security/outboundGateEntry.routes.js";
 import ProductionMasterRouter from "./routes/warehouseExecutive/production.routes.js";
 import ForkliftOperatorMasterRouter from "./routes/forkliftOperator.routes.js";
+import TruckLoadingRouter from "./routes/warehouseExecutive/truckLoading.routes.js";
+import DeliveryRouter from "./routes/warehouseExecutive/delivery.routes.js";
 import { globalErrorHandler } from "./utils/errors/globalErrorHandler.js";
 const Configs = getConfigs();
 mongo_service();
@@ -66,6 +69,10 @@ app.use(
   `/api/${Configs.server.version}/production-line`,
   ProductionLineMasterRouter
 );
+app.use(
+  `/api/${Configs.server.version}/customer-type`,
+  CustomerTypeMasterRouter
+);
 app.use(`/api/${Configs.server.version}/production`, ProductionMasterRouter);
 app.use(`/api/${Configs.server.version}/inbound`, InboundRouter);
 app.use(`/api/${Configs.server.version}/outbound`, OutboundRouter);
@@ -93,6 +100,8 @@ app.use(
   `/api/${Configs.server.version}/forklift-operator`,
   ForkliftOperatorMasterRouter
 );
+app.use(`/api/${Configs.server.version}/truck-loading`, TruckLoadingRouter);
+app.use(`/api/${Configs.server.version}/delivery`, DeliveryRouter);
 app.use(globalErrorHandler);
 // Error handling for the server
 server.on("error", (error) => {
