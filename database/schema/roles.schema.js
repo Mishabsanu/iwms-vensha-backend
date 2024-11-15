@@ -82,13 +82,26 @@ const RoleSchema = new mongoose.Schema({
     transfer_order_create: { type: Boolean, default: false },
     transfer_order_edit: { type: Boolean, default: false },
     transfer_order_view: { type: Boolean, default: false },
+
     outbound_master_create: { type: Boolean, default: false },
     outbound_master_edit: { type: Boolean, default: false },
     outbound_master_view: { type: Boolean, default: false },
 
+    customer_type_master_create: { type: Boolean, default: false },
+    customer_type_master_edit: { type: Boolean, default: false },
+    customer_type_master_view: { type: Boolean, default: false },
+
     security_create: { type: Boolean, default: false },
     security_edit: { type: Boolean, default: false },
     security_view: { type: Boolean, default: false },
+
+    truck_loading_create: { type: Boolean, default: false },
+    truck_loading_edit: { type: Boolean, default: false },
+    truck_loading_view: { type: Boolean, default: false },
+
+    delivery_create: { type: Boolean, default: false },
+    delivery_edit: { type: Boolean, default: false },
+    delivery_view: { type: Boolean, default: false },
   },
   status: { type: Boolean, default: true },
   created_employee_id: {

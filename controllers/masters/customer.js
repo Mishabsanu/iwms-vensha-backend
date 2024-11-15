@@ -142,3 +142,12 @@ export const ListCustomerMasterWithOutPermission = catchAsync(
     });
   }
 );
+export const ListCustomerMasterById = catchAsync(async (req, res) => {
+  const Name = req.query.customer_name;
+  const customerList = await CustomerModel.findOne({ customer_name: Name });
+  return res.status(201).json({
+    result: customerList,
+    status: true,
+    message: "Get Customer List",
+  });
+});

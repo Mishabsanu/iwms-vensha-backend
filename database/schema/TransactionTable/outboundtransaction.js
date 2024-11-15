@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const outboundtransactionModel = new mongoose.Schema({
+const outboundtransactionSchema = new mongoose.Schema({
   order_qty: {
     type: Number,
     required: true,
@@ -74,8 +74,8 @@ const outboundtransactionModel = new mongoose.Schema({
 });
 
 const OutboundTransactionModel = mongoose.model(
-  "outboundtransactionModel",
-  outboundtransactionModel
+  "outboundtransaction",
+  outboundtransactionSchema
 );
 
 export default OutboundTransactionModel;

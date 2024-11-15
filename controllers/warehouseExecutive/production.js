@@ -6,8 +6,8 @@ import UserModel from "../../database/schema/user.schema.js";
 import ProductionModel from "../../database/schema/warehouseExecutive/production.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
 import StockModel from "../../database/schema/stock/stock.schema.js";
-
 import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
+import InboundTransactionModel from "../../database/schema/TransactionTable/inboundTransaction.js";
 
 export const BulkUploadProduction = catchAsync(async (req, res, next) => {
   const file = req.file;
@@ -399,6 +399,7 @@ export const AddProduction = catchAsync(async (req, res) => {
     const savedProductions = await ProductionModel.insertMany(
       productionEntries
     );
+    await InboundTransactionModel.insertMany(productionEntries);
 
     return res.status(201).json({
       result: savedProductions,
@@ -725,8 +726,6 @@ export const VerifyBinoutbound = catchAsync(async (req, res) => {
   }
 });
 
-
-
 export const ListTransaction = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -976,8 +975,6 @@ export const ListProductionWithOutPermission = catchAsync(async (req, res) => {
 });
 
 export const ListProductionReport = catchAsync(async (req, res) => {
-
-
   const { processOrder, sortBy = "created_at", sort = "desc" } = req.body;
   const authUserDetail = req.userDetails;
   const userId = authUserDetail._id;

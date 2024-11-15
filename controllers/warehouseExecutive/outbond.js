@@ -5,11 +5,7 @@ import OutboundModel from "../../database/schema/warehouseExecutive/outbond.sche
 import OutboundForkliftModel from "../../database/schema/warehouseExecutive/outboundForklift.js";
 import catchAsync from "../../utils/errors/catchAsync.js";
 
-
-
-
-
-export const ListOutbound = catchAsync(async (req, res) => {
+export const ListOutboundSO = catchAsync(async (req, res) => {
   const {
     page = 1,
     limit = 10,
@@ -19,7 +15,7 @@ export const ListOutbound = catchAsync(async (req, res) => {
   } = req.query;
   console.log(search);
 
-  let searchQuery = { deleted_at: null };
+  let searchQuery = { order_type: "SO", deleted_at: null };
   if (search) {
     const searchRegex = new RegExp("." + search + ".", "i");
     searchQuery = {
@@ -48,20 +44,20 @@ export const ListOutbound = catchAsync(async (req, res) => {
     {
       $limit: limit,
     },
-    {
-        $lookup: {
-          from: "customers", // The name of the ProductLine collection
-          localField: "entity_name", // The field in OutboundForkliftModel to match
-          foreignField: "_id", // The field in the ProductLine collection to match
-          as: "customerDetails", // The name of the field to add the matched documents
-        },
-      },
-      {
-        $unwind: {
-          path: "$customerDetails",
-          preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
-        },
-      },
+    // {
+    //   $lookup: {
+    //     from: "customers", // The name of the ProductLine collection
+    //     localField: "entity_name", // The field in OutboundForkliftModel to match
+    //     foreignField: "_id", // The field in the ProductLine collection to match
+    //     as: "customerDetails", // The name of the field to add the matched documents
+    //   },
+    // },
+    // {
+    //   $unwind: {
+    //     path: "$customerDetails",
+    //     preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+    //   },
+    // },
   ]);
 
   if (produntionLineList) {
@@ -74,10 +70,71 @@ export const ListOutbound = catchAsync(async (req, res) => {
     });
   }
 });
+export const ListOutboundSTO = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "updated_at",
+    sort = "desc",
+    search,
+  } = req.query;
+  console.log(search);
 
+  let searchQuery = { order_type: "STO", deleted_at: null };
+  if (search) {
+    const searchRegex = new RegExp("." + search + ".", "i");
+    searchQuery = {
+      ...searchQuery,
+      $or: [{ sku_code: searchRegex }],
+    };
+  }
 
+  const totalDocument = await OutboundModel.countDocuments({
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocument / limit);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = Math.max((validPage - 1) * limit, 0);
 
+  const produntionLineList = await OutboundModel.aggregate([
+    {
+      $match: { ...searchQuery },
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    // {
+    //   $lookup: {
+    //     from: "customers", // The name of the ProductLine collection
+    //     localField: "entity_name", // The field in OutboundForkliftModel to match
+    //     foreignField: "_id", // The field in the ProductLine collection to match
+    //     as: "customerDetails", // The name of the field to add the matched documents
+    //   },
+    // },
+    // {
+    //   $unwind: {
+    //     path: "$customerDetails",
+    //     preserveNullAndEmptyArrays: true, // Preserves the document if no match is found
+    //   },
+    // },
+  ]);
 
+  if (produntionLineList) {
+    return res.status(200).json({
+      result: produntionLineList,
+      status: true,
+      totalPages: totalPages,
+      currentPage: validPage,
+      message: "All ProduntionLine List",
+    });
+  }
+});
 
 export const CrossDockPickup = catchAsync(async (req, res) => {
   const { modifyList, dock, assigned_to, customerDetails } = req.body;
@@ -122,40 +179,39 @@ export const CrossDockPickup = catchAsync(async (req, res) => {
               });
 
               await outboundForkliftData.save();
-              console.log(`Saved outboundForkliftData: ${outboundForkliftData}`);
+              console.log(
+                `Saved outboundForkliftData: ${outboundForkliftData}`
+              );
             } else {
-              console.log(`Item with sku_code: ${skuItem.sku_code} is not in Cross Dock bin.`);
+              console.log(
+                `Item with sku_code: ${skuItem.sku_code} is not in Cross Dock bin.`
+              );
             }
           } else {
-            console.log(`No existing item found with sku_code: ${skuItem.sku_code}`);
+            console.log(
+              `No existing item found with sku_code: ${skuItem.sku_code}`
+            );
           }
         }
       } else {
-        console.log('No valid SKUs provided in modifyList item');
+        console.log("No valid SKUs provided in modifyList item");
       }
     }
 
     // Respond with success after processing all items
     res.status(200).json({
-      status: 'success',
-      message: 'Cross Dock data processed successfully',
+      status: "success",
+      message: "Cross Dock data processed successfully",
     });
   } else {
     // Handle the case where modifyList is not provided or empty
-    console.log('No valid modifyList provided');
+    console.log("No valid modifyList provided");
     res.status(400).json({
-      status: 'error',
-      message: 'Invalid or missing modifyList data',
+      status: "error",
+      message: "Invalid or missing modifyList data",
     });
   }
 });
-
-
-
-
-
-
-
 
 export const GetForkliftTaskCounts = catchAsync(async (req, res) => {
   // Step 1: Find Forklift Operated Role ID
@@ -246,86 +302,21 @@ export const GetForkliftTaskCounts = catchAsync(async (req, res) => {
   });
 });
 
-
-
-
-
-
-
-
-
-// export const sendToForklift= catchAsync(async (req, res) => {
-
-//   console.log(req.body,'req.body');
-  
-// });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Function to generate a unique order number (simple example)
-const generateOrderNumber = () => {
-    return `ORD-${Date.now()}`; // Generates a unique number based on the current timestamp
-};
-
 export const AddOutbound = catchAsync(async (req, res) => {
-    console.log("data",req.body);
-    const { date, order_type, entity_name, skus } = req.body;
-
-    // Validate required fields
-    if (!date || !order_type || !entity_name || !skus || !Array.isArray(skus)) {
-        return res.status(400).json({
-            status: 'fail',
-            message: 'Missing required fields'
-        });
-    }
-
-    // Generate a unique order number
-    const orderNumber = Date.now();
-
-    // Calculate the total SKU count
-    const totalSkuCount = skus.length;
-
-    // Calculate the total stock quantity
-    let totalStockQty = 0;
-
-    skus.forEach(sku => {
-        totalStockQty += parseInt(sku.stock_qty, 10);
-    });
-    
-    const newOutbound = await OutboundModel.create({
-        order_number:orderNumber,
-        date,
-        order_type: order_type,
-        entity_name: entity_name,
-        skus,
-        totalStockQty,  // Store the total stock quantity in the outbound record
-        totalSkuCount   // Store the total SKU count
-    });
-
-
-    
-
-    // Respond with the created outbound record
-    res.status(201).json({
-        status: 'success',
-        data: {
-            outbount:newOutbound ,
-            totalSkuCount, // Return the total SKU count
-            totalStockQty, // Return the total stock quantity
-        }
-
-        
-    });
+  const { skus } = req.body;
+  const totalSkuCount = skus.length;
+  let totalStockQty = 0;
+  skus.forEach((sku) => {
+    totalStockQty += parseInt(sku.stock_qty, 10);
+  });
+  const newOutbound = await OutboundModel.create({
+    ...req.body,
+    totalStockQty,
+    totalSkuCount,
+  });
+  res.status(201).json({
+    result: newOutbound,
+    status: true,
+    message: "Outbound created successfully",
+  });
 });

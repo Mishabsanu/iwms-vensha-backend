@@ -72,6 +72,17 @@ const ExtractRequiredPermission = (routeName) => {
     case "/list-produntion-line-master":
       return "production_line_master_view";
 
+    // CustomerType  modules
+
+    case "/add-customer-type-master":
+      return "customer_type_master_create";
+    case "/bulk-upload-customer-type-master":
+      return "customer_type_master_create";
+    case "/update-customer-type-master":
+      return "customer_type_master_edit";
+    case "/list-customer-type-master":
+      return "customer_type_master_view";
+
     case "/add-inbound":
       return "material_master_create";
     case "/list-vendor":
@@ -108,10 +119,19 @@ const ExtractRequiredPermission = (routeName) => {
 
     case "/add-outbound":
       return "outbound_master_create";
-    case "/list-outbound":
+    case "/list-outbound-so":
+      return "outbound_master_view";
+    case "/list-outbound-sto":
       return "outbound_master_view";
     case "/update-outbound":
       return "outbound_master_edit";
+
+    case "/add-truck-loading":
+      return "truck_loading_create";
+    case "/list-truck-loading":
+      return "truck_loading_view";
+    case "/update-truck-loading":
+      return "truck_loading_edit";
 
     case "/add-bin":
       return "bin_master_create";
@@ -119,6 +139,13 @@ const ExtractRequiredPermission = (routeName) => {
       return "bin_master_view";
     case "/update-bin":
       return "bin_master_edit";
+
+    case "/add-delivery":
+      return "delivery_create";
+    case "/list-delivery":
+      return "delivery_view";
+    case "/update-delivery":
+      return "delivery_edit";
 
     case "/add-uom":
       return "uom_master_create";

@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
-const productionSchema = new mongoose.Schema({
-  // production_line: {
-  //   type: String,
-  //   required: true,
-  // },
+const InboundTransactionSchema = new mongoose.Schema({
   production_line: {
     type: mongoose.Types.ObjectId,
     ref: "production_lines",
@@ -121,6 +117,9 @@ const productionSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const ProductionModel = mongoose.model("production", productionSchema);
+const InboundTransactionModel = mongoose.model(
+  "inboundtransaction",
+  InboundTransactionSchema
+);
 
-export default ProductionModel;
+export default InboundTransactionModel;
